@@ -1,5 +1,5 @@
-# Race Timer
-Also referred to as Lap Timer. This is a ScriptHookVDotNet script for GTA5. 
+# Stunt Race Timer
+Fork of [Lap Timer](https://github.com/DavidLiuGit/GTAV_Lap_Timer). This is a ScriptHookVDotNet script for GTA5. 
 
 Test your car's performance any way you want with Race Timer. Set your own checkpoints (in Placement Mode), and take any car through the race you created.
 

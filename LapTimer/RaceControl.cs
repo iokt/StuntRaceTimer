@@ -1,4 +1,4 @@
-﻿extern alias SVDN2;
+﻿extern alias SHVDN2;
 //extern alias CFX;
 //using static CitizenFX.Core.Native.API;
 
@@ -995,7 +995,7 @@ namespace LapTimer
 				//if (i + 1 < timestring.Length && (timestring[i + 1] == ':' || timestring[i + 1] == '.')) mult = 1;
 				int addOne = (Char.IsDigit(timestring[i]) ? 0 : 1);
 				string Text = timestring.Substring(i, 1).PadRight((timestring.Length - i - 1) + numDigits + addOne, ' ') + '.'; //TODO: better string formatting
-				NativeUI.UIResText.Draw(Text, (int)res.Width - safe.X - 10, (int)res.Height - safe.Y - (42 + (4 * interval)), SVDN2.GTA.Font.ChaletLondon, 0.5f, Color.White,
+				NativeUI.UIResText.Draw(Text, (int)res.Width - safe.X - 10, (int)res.Height - safe.Y - (42 + (4 * interval)), SHVDN2.GTA.Font.ChaletLondon, 0.5f, Color.White,
 					NativeUI.UIResText.Alignment.Right, false, false, 0);
 			}
 		}

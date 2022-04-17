@@ -34,15 +34,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NativeUI">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\scripts\NativeUI.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\scripts\NativeUI.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptHookVDotNet2, Version=2.11.3.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\epic\GTAV\ScriptHookVDotNet2.dll</HintPath>
-      <Aliases>SVDN2</Aliases>
+    <Reference Include="ScriptHookVDotNet2">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\ScriptHookVDotNet2.dll</HintPath>
+      <Aliases>SHVDN2</Aliases>
     </Reference>
     <Reference Include="ScriptHookVDotNet3">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\ScriptHookVDotNet3.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\ScriptHookVDotNet3.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,7 +66,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-		copy /Y "$(Targetpath)" "C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\scripts"
+		copy /Y "$(Targetpath)" "C:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V\scripts"
 		powershell "Compress-Archive -Force '$(ProjectDir)/assets/$(TargetName).ini', '$(ProjectDir)/assets/LapTimer', '$(TargetPath)', '$(SolutionDir)README.md' '$(TargetDir)$(TargetName).zip'"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

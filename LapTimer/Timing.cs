@@ -124,12 +124,16 @@ namespace LapTimer
 		/// <param name="time">Time in milliseconds</param>
 		/// <param name="forceMinute">Force inclusion of minutes</param>
 		/// <returns></returns>
-		public static string msToReadable(int time, bool forceSign = false, bool forceMinute = false)
+		public static string msToReadable(int time, bool forceSign = false, bool forceMinute = false, bool forceHour = false, bool forceDay = false)
 		{
 			// format milliseconds to seconds (and minutes, if necessary)
 			string ret;
-			if (forceMinute || time >= 60000)
-				ret = TimeSpan.FromMilliseconds(time).ToString(@"m\:ss\.fff");
+			if (forceDay || time >= 24*60*60*1000)
+				ret = TimeSpan.FromMilliseconds(time).ToString(@"d\.hh\:mm\:ss\.fff");
+			else if (forceHour || time >= 60*60*1000)
+				ret = TimeSpan.FromMilliseconds(time).ToString(@"hh\:mm\:ss\.fff");
+			else if (forceMinute || time >= 60*1000)
+				ret = TimeSpan.FromMilliseconds(time).ToString(@"mm\:ss\.fff");
 			else ret = TimeSpan.FromMilliseconds(time).ToString(@"s\.fff");
 
 			// prepend sign +/- if necessary, depending on forceSign and time value

@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,13 +30,19 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NativeUI">
-      <HintPath>E:\Games\GTAV\scripts\NativeUI.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\scripts\NativeUI.dll</HintPath>
+    </Reference>
+    <Reference Include="ScriptHookVDotNet2, Version=2.11.3.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\epic\GTAV\ScriptHookVDotNet2.dll</HintPath>
+      <Aliases>SVDN2</Aliases>
     </Reference>
     <Reference Include="ScriptHookVDotNet3">
-      <HintPath>E:\Games\GTAV\ScriptHookVDotNet3.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\ScriptHookVDotNet3.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -59,8 +66,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(Targetpath)" "F:\Games\Grand Theft Auto V\scripts"
-powershell "Compress-Archive -Force '$(ProjectDir)/assets/$(TargetName).ini', '$(ProjectDir)/assets/LapTimer', '$(TargetPath)', '$(SolutionDir)README.html' '$(TargetDir)$(TargetName).zip'"</PostBuildEvent>
+    <PostBuildEvent>
+		copy /Y "$(Targetpath)" "C:\Program Files (x86)\Steam\steamapps\common\epic\GTAV\scripts"
+		powershell "Compress-Archive -Force '$(ProjectDir)/assets/$(TargetName).ini', '$(ProjectDir)/assets/LapTimer', '$(TargetPath)', '$(SolutionDir)README.md' '$(TargetDir)$(TargetName).zip'"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

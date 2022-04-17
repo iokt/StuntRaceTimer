@@ -57,12 +57,18 @@ namespace LapTimer
 
 			// add a submenu to handle race imports
 			UIMenu raceImportMenu = _menuPool.AddSubMenu(mainMenu, "Race Import Menu", "Choose races to import from file");
+			raceImportMenu.OnMenuOpen += buildRaceImportMenu;
 			buildRaceImportMenu(raceImportMenu);
 
 			// add a submenu for race control
 			UIMenu raceControlMenu = _menuPool.AddSubMenu(mainMenu, "Race Control Menu", "Modify checkpoints and race mode");
 			raceControlMenu.OnMenuOpen += buildRaceControlMenu;
 			//buildRaceControlMenu(raceControlMenu);
+
+			// add a submenu to handle race imports
+			UIMenu replayImportMenu = _menuPool.AddSubMenu(mainMenu, "Replay Import Menu", "Choose replays to import from file");
+			replayImportMenu.OnMenuOpen += buildReplayImportMenu;
+			buildReplayImportMenu(replayImportMenu);
 
 			// add a submenu for Timing Sheet
 			UIMenu lapTimeMenu = _menuPool.AddSubMenu(mainMenu, "Lap Times", "Display lap times for the current race");
@@ -110,8 +116,10 @@ namespace LapTimer
 		}
 
 
-		private UIMenu buildRaceImportMenu(UIMenu submenu)
+		private void buildRaceImportMenu(UIMenu submenu)
 		{
+			submenu.Clear();
+
 			// get a List all races that can be imported
 			List<ImportableRace> races = RaceExporter.getImportableRaces();
 			
@@ -129,7 +137,8 @@ namespace LapTimer
 				submenu.AddItem(item);
 			}
 
-			return submenu;
+			return;
+			//return submenu;
 		}
 
 
@@ -159,6 +168,35 @@ namespace LapTimer
 			deleteAllCheckpointsBtn.Activated += (m, i) => race.clearAllSectorCheckpoints();
 			submenu.AddItem(deleteAllCheckpointsBtn);
 
+			//return submenu;
+		}
+
+		private void buildReplayImportMenu(UIMenu submenu)
+		{
+			submenu.Clear();
+
+			// get a List all races that can be imported
+			List<ImportableReplay> replays = replayExporter.getImportableReplays();
+
+			// iterate over each race & add to menu, along with their handlers
+			foreach (ImportableReplay r in replays)
+			{
+				//string descriptionString = r.name +
+				//	"\nMode: " + (r.lapMode ? "circuit" : "point-to-point") +
+				//	"\nVersion: " + r.version ?? "v1.x";
+				//UIMenuItem item = new UIMenuItem(r.name, descriptionString);
+				string f = r.filePath;
+				f = f.Substring(f.LastIndexOf('/')+1).Replace(".json.gz", "");
+				UIMenuItem item = new UIMenuItem(f);
+				item.Activated += (menu, sender) =>
+				{
+					race.importReplay(r.filePath);
+					_menuPool.CloseAllMenus();
+				};
+				submenu.AddItem(item);
+			}
+
+			return;
 			//return submenu;
 		}
 

@@ -25,6 +25,8 @@ namespace LapTimer
 
 
 		#region main
+		bool isDamaged = false;
+		int repairTicker = 0;
 		public RaceTimerMain()
 		{
 			Tick += onTick;
@@ -59,9 +61,45 @@ namespace LapTimer
 			// race mode checkpoint detection
 			if (race.raceMode)
 			{
+				race.timescaleControl();
+				race.preventCharSwitch();
+				race.preventVehicleExit();
+				race.preventTrain();
+				//race.checkBikeCollisions();
+				race.resetHealth();
 				race.activeCheckpointDetection();
-			}
+				race.updatePools();
+				race.pool.Draw();
 
+				//ORDER IS IMPORTANT: don't re-record last frame of playback
+				if (race.tasRecordMode) race.tasRecord();
+				if (race.tasPlaybackMode) race.tasPlayback();
+				
+			}
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			if (veh != null)
+            {
+				/**
+				//autorepair 240 frames after damage
+				const int repairWait = 240;
+				if (!isDamaged) isDamaged = veh.IsDamaged && (veh.IsInvincible || veh.HealthFloat < 980f);
+				else if (!veh.IsOnAllWheels) repairTicker = (repairTicker > repairWait - 60) ? repairWait - 60 : repairTicker; //avoid killing momentum in midair
+				else if (repairTicker > repairWait)
+				{
+					veh.Repair();
+					isDamaged = false;
+					repairTicker = 0;
+				}
+				else repairTicker++;
+				//Game.Player.Character.is
+				**/
+				if (race.raceMode && veh.IsConsideredDestroyed)
+				{
+					race.respawn();
+					//veh.Repair();
+				}
+			}
+			
 		}
 		#endregion
 
@@ -75,7 +113,7 @@ namespace LapTimer
 		// hotkeys
 		Keys menuKey;
 		Keys placementActivateKey, addCheckpointKey, undoCheckpointKey, clearCheckpointsKey;
-		Keys raceActivateKey, restartRaceKey;
+		Keys raceActivateKey, restartRaceKey, respawnKey, stopCarKey, tasPlaybackKey, tasRecordKey;
 		#endregion
 
 
@@ -112,11 +150,32 @@ namespace LapTimer
 				race.toggleRaceMode();
 
 			// if race mode is enabled, and the control key was used:
-			else if (race.raceMode && e.Modifiers == Keys.Control)
+			else if (race.raceMode && e.Modifiers == (Keys.Control|Keys.Shift))
 			{
-				// Ctrl+R: restart race
+				// Ctrl+Shift+R: restart race
 				if (e.KeyCode == restartRaceKey)
 					race.enterRaceMode();
+			}
+			else if (race.raceMode && e.Modifiers == Keys.Control)
+            {
+				// Ctrl+R: respawn
+				if (e.KeyCode == respawnKey)
+					race.respawn();
+				// Ctrl+Z: stop car
+				else if (e.KeyCode == stopCarKey)
+                {
+					race.stopCar();
+                }
+				// Ctrl+O: TAS playback
+				else if (e.KeyCode == tasPlaybackKey)
+                {
+					race.tasPlaybackToggle();
+                }
+				// Ctrl+I: TAS record toggle
+				else if (e.KeyCode == tasRecordKey)
+				{
+					race.tasRecordToggle();
+				}
 			}
 		}
 
@@ -155,6 +214,10 @@ namespace LapTimer
 			section = "Race";
 			raceActivateKey = ss.GetValue<Keys>(section, "activate", Keys.F6);
 			restartRaceKey = ss.GetValue<Keys>(section, "restartRace", Keys.R);
+			respawnKey = ss.GetValue<Keys>(section, "respawn", Keys.R);
+			stopCarKey = ss.GetValue<Keys>(section, "stopCar", Keys.Z);
+			tasPlaybackKey = ss.GetValue<Keys>(section, "tasPlayback", Keys.O);
+			tasRecordKey = ss.GetValue<Keys>(section, "tasRecord", Keys.I);
 			race.freezeTime = ss.GetValue<int>(section, "freezeTime", 750);
 			race.showSpeedTrap = ss.GetValue<bool>(section, "showSpeedTrap", false);
 			race.displaySpeedInKmh = ss.GetValue<bool>(section, "useMetric", true);

@@ -340,7 +340,7 @@ namespace LapTimer
 			current.pos = veh.Position;
 			current.quat = veh.Quaternion;
 			current.vel = veh.Velocity;
-			current.rvel = veh.RotationVelocity;
+			current.rvel = veh.WorldRotationVelocity;
 
 			//Driving and Turning
 			current.brakepower = veh.BrakePower;
@@ -519,7 +519,7 @@ namespace LapTimer
 				veh.PositionNoOffset = current.pos;
 				veh.Quaternion = current.quat;
 				veh.Velocity = current.vel;
-				veh.RotationVelocity = current.rvel;
+				veh.WorldRotationVelocity = current.rvel;
 
 				//Driving and Steering
 				veh.BrakePower = current.brakepower;

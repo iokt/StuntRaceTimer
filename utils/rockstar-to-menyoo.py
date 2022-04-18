@@ -6,6 +6,9 @@ import time
 #This counter is necessary to avoid all the markers being attached to the first prop
 handle_count = 1
 
+model_blacklist = [-1682808593, #stunt camera trigger
+                   ]
+
 weather_lookup = {0:  None, #Current
                   1:  'ExtraSunny', #Bright
                   2:  'Rain', #Raining
@@ -54,6 +57,8 @@ def print_startpos(j):
 def print_prop(model, loc, vRot, is_dynamic=False, clr=None, lod=None):
     global handle_count
     L = []
+    if model in model_blacklist:
+        return L
     L.append('<Placement>')
 
     #ModelHash

@@ -18,7 +18,7 @@ namespace LapTimer
 {
 	class RaceExporter
 	{
-		protected const string rootPath = "./scripts/LapTimer/";
+		protected const string rootPath = "./scripts/LapTimer/races/";
 		protected const string fileExt = ".json";
 		protected const string scriptVersion = "v3.0";
 		
@@ -112,10 +112,11 @@ namespace LapTimer
 		/// Get a List of <c>ImportableRace</c> from the default script output directory.
 		/// </summary>
 		/// <returns>List of <c>ImportableRace</c></returns>
-		public static List<ImportableRace> getImportableRaces()
+		public static List<ImportableRace> getImportableRaces(string subdir = null)
 		{
+			subdir = subdir ?? rootPath;
 			// get all .json files in the script directory
-			string[] files = Directory.GetFiles(rootPath, "*.json");
+			string[] files = Directory.GetFiles(subdir, "*.json");
 
 			// instantiate list of importable races
 			List<ImportableRace> races = new List<ImportableRace>();
@@ -141,7 +142,12 @@ namespace LapTimer
 			return races;
 		}
 
-
+		public static string[] getSubdirectories(string currentdir = null)
+        {
+			currentdir = currentdir ?? rootPath;
+			string[] dirs = Directory.GetDirectories(currentdir);
+			return dirs;
+        }
 
 		protected static string getFilePath(string fileName)
 		{

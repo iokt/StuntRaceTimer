@@ -115,13 +115,35 @@ namespace LapTimer
 			sender.RefreshIndex();
 		}
 
-
+		private string subdir = null;
 		private void buildRaceImportMenu(UIMenu submenu)
 		{
 			submenu.Clear();
+			if (subdir != null)
+			{
+				UIMenuItem item = new UIMenuItem("Back <<<");
+				item.Activated += (menu, sender) =>
+				{
+					subdir = null;
+					buildRaceImportMenu(submenu);
+				};
+				submenu.AddItem(item);
+			}
+
+			foreach (string dir in RaceExporter.getSubdirectories(subdir))
+            {
+				char[] separators = { '/', '\\' };
+				UIMenuItem item = new UIMenuItem(dir.Substring(dir.LastIndexOfAny(separators) + 1) + " >>>");
+				item.Activated += (menu, sender) =>
+				{
+					subdir = dir;
+					buildRaceImportMenu(submenu);
+				};
+				submenu.AddItem(item);
+            }
 
 			// get a List all races that can be imported
-			List<ImportableRace> races = RaceExporter.getImportableRaces();
+			List<ImportableRace> races = RaceExporter.getImportableRaces(subdir);
 			
 			// iterate over each race & add to menu, along with their handlers
 			foreach (ImportableRace r in races){

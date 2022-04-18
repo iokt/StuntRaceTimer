@@ -13,11 +13,13 @@ As you drive, Race Timer shows you at each checkpoint:
 ## Installation
 Extract `LapTimer.dll`, `LapTimer.ini`, and `LapTimer` folder into your `scripts` folder.  
 If you have already installed an earlier version of the script, make sure to merge the `LapTimer` folder to preserve your old races and timing sheets.
+If you want to spawn in the props, you need to install Menyoo and add the XML files to your `menyooStuff/Spooner` folder, then load them in the Object Spooner menu.
 
 ### Requirements
 - .NET 4.8
 - [ScriptHookVDotNet v3](https://github.com/crosire/scripthookvdotnet/releases)
 - [NativeUI](https://github.com/Guad/NativeUI/releases)
+- [MenyooSP](https://github.com/MAFINS/MenyooSP/releases) (recommended)
 
 ---
 ## Usage
@@ -25,7 +27,7 @@ If you have already installed an earlier version of the script, make sure to mer
 ### Menu
 The menu has all the controls you need to use all features of this script.
 
-- `Ctrl+N`: show menu
+- `Ctrl+L`: show menu
 
 
 ### Placement Mode
@@ -37,7 +39,17 @@ In this mode, you will create your custom race by placing checkpoints. Enter "Pl
 
 ### Race Mode
 Once you've placed at least 2 checkpoints, get in a vehicle and press F6. You will be teleported to the first checkpoint, and the timer will start. Times will be displayed at each checkpoint and at the end of the race.
-- `Ctrl+R`: restart race
+- `Ctrl+Shift+R`: restart race
+- `Ctrl+R` or `Vehicle Exit`: respawn
+- `Ctrl+Z`: stop car instantly
+- `Character Wheel`: simulated GTAO character swap stop
+- `Ctrl+I`: toggle recording
+- `Ctrl+O`: toggle playback
+- `Cinematic Cam`: toggle playback (while in record mode)
+- `Phone Up`: pause/unpause playback
+- `Phone Left`: slow down time
+- `Phone Right`: speed up time
+- `Vehicle Aim+Look Left/Right`: seek backwards/forwards (while paused in playback mode)
 
 ### Circuit vs point-to-point
 In v3, support for circuit races were implemented. Whereas all races in earlier versions ended when you reached the last checkpoint, if "Lap Mode" checkbox is checked, you will begin a new lap when you reach the last checkpoint. Some preset races, including Prison Loop, Grove Street, Spa Franchorchamps, Redwood Lights, and Broughy1322's famous test track have been updated to run in Lap Mode!
@@ -53,9 +65,9 @@ Similar to qualifying in motorsports like F1, when racing in Lap Mode, your firs
 
 
 ### Import/Export races
-You can export races you've created to replay in another session (or share them with other users). Select `Menu > Export Race`, and give your race a descriptive name. The race will be saved as a `.json` file in your `scripts/LapTimer` directory.
+You can export races you've created to replay in another session (or share them with other users). Select `Menu > Export Race`, and give your race a descriptive name. The race will be saved as a `.json` file in your `scripts/LapTimer/races` directory.
 
-To import races, select `Menu > Race Import Menu` in the menu. A list of importable races will show up. To import races created by other users, place their race `.json` file in your `scripts/LapTimer` directory. This script comes with a number of races already created.
+To import races, select `Menu > Race Import Menu` in the menu. A list of importable races will show up. To import races created by other users, place their race `.json` file in your `scripts/LapTimer/races` directory. This script comes with a number of races already created.
 
 
 ### Timing sheets
@@ -64,6 +76,10 @@ You can view your lap times for the current race in `Menu > Lap Times`
 When you complete a race, your time is automatically saved and exported in a file. Times are saved on a per-vehicle basis, and are recorded for each checkpoint in the race. 
 
 Your race's timing sheet is automatically imported when you import a race, as long as you haven't modified it! If you modify the race (i.e. adding or deleting checkpoints), your previously recorded lap times will be invalidated.
+
+
+### Replays
+A replay is compressed and saved in your `scripts/LapTimer/replays` folder whenever you stop recording. You can import them in `Menu > Replay Import Menu`.
 
 
 

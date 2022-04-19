@@ -840,11 +840,13 @@ namespace LapTimer
 		private int lastVehicleRemoval = 0;
 		public void removeVehicles(int wait = 0)
         {
+			
 			if (Game.GameTime - lastVehicleRemoval < wait) return;
 			Vehicle[] nearby = World.GetNearbyVehicles(Game.Player.Character, 100f);
 			for (int i = 0; i < nearby.Length; i++)
             {
-				nearby[i].Delete();
+				if (!nearby[i].PreviouslyOwnedByPlayer)
+					nearby[i].Delete();
             }
 			lastVehicleRemoval = Game.GameTime;
         }

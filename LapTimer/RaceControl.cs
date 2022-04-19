@@ -205,7 +205,7 @@ namespace LapTimer
 
 			if (ignoreActivation) return 0;
 
-			float zAdd = activeCheckpoint.isAirCheckpoint ? 2.5f : 0.5f;
+			float zAdd = activeCheckpoint.isAirCheckpoint ? 0f : 0f;
 			// get player's position and compute distance to the position of the active checkpoint
 			float dist;
 			if (force3D) dist = Game.Player.Character.Position.DistanceTo(activeCheckpoint.position + new Vector3(0f, 0f, zAdd));
@@ -225,7 +225,7 @@ namespace LapTimer
 			bool inRangeZ2 = false;
 			if (activeCheckpoint.hasSecondaryCheckpoint)
 			{
-				float zAdd2 = activeCheckpoint.isAirCheckpoint2 ? 2.5f : 0.5f; 
+				float zAdd2 = activeCheckpoint.isAirCheckpoint2 ? 0f : 0f; 
 				float radius2 = activeCheckpoint.isAirCheckpoint2 ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
 				float dist2;
 				if (force3D) dist2 = Game.Player.Character.Position.DistanceTo(activeCheckpoint.position2 + new Vector3(0f, 0f, zAdd2));

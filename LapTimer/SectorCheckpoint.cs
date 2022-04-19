@@ -29,8 +29,8 @@ namespace LapTimer
 		private int _checkpointHashcode;
 
 		// placement constants
-		public const float checkpointRadius = 11.5f;
-		public const float checkpointAirRadius = 20.0f;
+		public const float checkpointRadius = 12.0f;
+		public const float checkpointAirRadius = 22.5f;
 		public const float zClamp = -9.25f; //random guess
 		private readonly float doubleArrowThresh = 45.0f; //degrees
 		private readonly float tripleArrowThresh = 90.0f; //degrees

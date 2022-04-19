@@ -59,6 +59,10 @@ namespace LapTimer
 			{
 				return Game.GameTime - lapStartTime;
 			}
+			set
+            {
+				lapStartTime = Game.GameTime - value;
+            }
 		}
 		public int totalTime
 		{
@@ -66,6 +70,10 @@ namespace LapTimer
 			{
 				return Game.GameTime - raceStartTime;
 			}
+			set
+            {
+				raceStartTime = Game.GameTime - value;
+            }
 		}
 		public int pbTime
 		{
@@ -335,6 +343,9 @@ namespace LapTimer
 			current.frametime = Game.LastFrameTime;
 			current.gametime = Game.GameTime;
 			current.offset = offset;
+			current.laptime = lapTime;
+			current.totaltime = totalTime;
+			current.activecheckpoint = activeSector;
 
 			//Position, Rotation, Velocity
 			current.pos = veh.Position;
@@ -343,6 +354,7 @@ namespace LapTimer
 			current.rvel = veh.WorldRotationVelocity;
 
 			//Driving and Turning
+			current.model = veh.Model.Hash;
 			current.brakepower = veh.BrakePower;
 			current.clutch = veh.Clutch;
 			current.currentgear = veh.CurrentGear;
@@ -515,6 +527,20 @@ namespace LapTimer
 			int syncPlaybackFrames = 1;
 			if ((syncPlaybackFrames > 0 && (tasPlaybackIndex-tasPlaybackStartIndex) % syncPlaybackFrames == 0) || (tasPlaybackIndex - tasPlaybackStartIndex) < 60)
 			{
+				//Timing
+				if (current.laptime >= 0)
+                {
+					lapTime = current.laptime;
+                }
+				if (current.totaltime >= 0)
+                {
+					totalTime = current.totaltime;
+                }
+				if (current.activecheckpoint >= 0 && current.activecheckpoint != activeSector)
+                {
+					activateRaceCheckpoint(current.activecheckpoint);
+                }
+
 				//Position, Rotation, Velocity
 				veh.PositionNoOffset = current.pos;
 				veh.Quaternion = current.quat;
@@ -537,22 +563,24 @@ namespace LapTimer
 
 				//CitizenFX.Core.Native
 				//Wheels
-				wheelProperties[] wheelprops = current.wheels;
-				VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
-				for (int i = 0; i < Math.Max(wheels.Length, wheelprops.Length); i++)
+				if (current.model == veh.Model.Hash)
 				{
-					IntPtr addr = wheels[i].MemoryAddress;
-					if (addr == IntPtr.Zero) break;
-					for (int j = 0; j < wheelMemSize / intSize; j++)
+					wheelProperties[] wheelprops = current.wheels;
+					VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
+					for (int i = 0; i < Math.Max(wheels.Length, wheelprops.Length); i++)
 					{
-						unsafe
+						IntPtr addr = wheels[i].MemoryAddress;
+						if (addr == IntPtr.Zero) break;
+						for (int j = 0; j < wheelMemSize / intSize; j++)
 						{
-							int* newaddr = (int*)addr;
-							*(newaddr + j) = wheelprops[i].memory[j];
+							unsafe
+							{
+								int* newaddr = (int*)addr;
+								*(newaddr + j) = wheelprops[i].memory[j];
+							}
 						}
 					}
 				}
-
 				//IntPtr addr = veh.Wheels.ToList()[0].MemoryAddress;
 				/**
 				int numWheels = CFX.CitizenFX.Core.Native.API.GetVehicleNumberOfWheels(veh.GetHashCode());
@@ -1179,7 +1207,7 @@ namespace LapTimer
 				// set the lap start time to -100 hours
 				lapStartTime = defaultLapStartTime;
 				//race hasn't started yet
-				raceStartTime = -1;
+				raceStartTime = defaultLapStartTime;
 
 				pool.Add(totalTimerBar);
 				pool.Add(pbTimerBar);

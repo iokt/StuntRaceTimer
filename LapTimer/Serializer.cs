@@ -364,6 +364,9 @@ namespace LapTimer
 		public float frametime;
 		public int gametime;
 		public int offset;
+		public int laptime;
+		public int totaltime;
+		public int activecheckpoint;
 		public int exitplaybacktime;
 		//Position, Rotation, Velocity
 		public Vector3 pos;
@@ -371,6 +374,7 @@ namespace LapTimer
 		public Vector3 vel;
 		public Vector3 rvel;
 		//Driving properties
+		public int model;
 		public float brakepower;
 		public float clutch;
 		public int currentgear;

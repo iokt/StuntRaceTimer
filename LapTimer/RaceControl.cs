@@ -1286,7 +1286,7 @@ namespace LapTimer
 
 			// the marker placed should be different, depending on whether this checkpoint is final
 			if (isFinal && !lapRace)
-				activeCheckpoint.marker = activeCheckpoint.placeMarker(activeCheckpoint.isAirCheckpoint ? MarkerType.raceAirFinish : MarkerType.raceFinish, idx);
+				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceFinish, idx);
 
 			// if not final checkpoint, place a checkpoint w/ an arrow pointing to the next checkpoint
 			else
@@ -1297,7 +1297,7 @@ namespace LapTimer
 				Vector3 lastChkptPosition = getPrevCheckpoint(idx).position;
 				Vector3 lastChkptPosition2 = getPrevCheckpoint(idx).position2;
 				if (lastChkptPosition2 == Vector3.Zero) lastChkptPosition2 = lastChkptPosition;
-				activeCheckpoint.marker = activeCheckpoint.placeMarker(activeCheckpoint.isAirCheckpoint ? MarkerType.raceAirArrow : MarkerType.raceArrow, idx, nextChkptPosition, nextChkptPosition2, lastChkptPosition, lastChkptPosition2);
+				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceArrow, idx, nextChkptPosition, nextChkptPosition2, lastChkptPosition, lastChkptPosition2);
 			}
 
 			return activeCheckpoint;

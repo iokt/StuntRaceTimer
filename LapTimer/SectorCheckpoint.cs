@@ -130,17 +130,28 @@ namespace LapTimer
 
 			// place a regular race checkpoint
 			else if (type == MarkerType.raceArrow)
-				newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.CylinderDoubleArrow,
-					position + checkpointOffset, checkpointOffset + _target, radius, defaultColor);
-			else if (type == MarkerType.raceAirArrow)
-				newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.RingDoubleArrow,
-					positionAir + checkpointOffset, checkpointOffset + _target, radius, defaultColor);
+				if (isAirCheckpoint)
+				{
+					newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.RingDoubleArrow,
+						positionAir + checkpointOffset, checkpointOffset + _target, radius, defaultColor);
+				}
+				else {
+					newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.CylinderDoubleArrow,
+						position + checkpointOffset, checkpointOffset + _target, radius, defaultColor);
+				}
 			else if (type == MarkerType.raceFinish)
-				newMarker.checkpoint = GTA.World.CreateCheckpoint(CheckpointIcon.CylinderCheckerboard3,
-					position + checkpointOffset, position + checkpointOffset, radius, defaultColor);
-			else if (type == MarkerType.raceAirFinish)
-				newMarker.checkpoint = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
-					positionAir + checkpointOffset, position + checkpointOffset, radius, defaultColor);
+            {
+				if (isAirCheckpoint)
+				{
+					newMarker.checkpoint = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
+							positionAir + checkpointOffset, position + checkpointOffset, radius, defaultColor);
+				}
+				else
+                {
+					newMarker.checkpoint = GTA.World.CreateCheckpoint(CheckpointIcon.CylinderCheckerboard3,
+							position + checkpointOffset, position + checkpointOffset, radius, defaultColor);
+				}
+            }
 			
 			//doesn't work
 			//newMarker.checkpoint.IconColor = defaultIconColor;
@@ -170,17 +181,32 @@ namespace LapTimer
 
 				// place a regular race checkpoint
 				else if (type == MarkerType.raceArrow)
-					newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.CylinderDoubleArrow,
-						position2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
-				else if (type == MarkerType.raceAirArrow)
-					newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.RingDoubleArrow,
-						positionAir2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
+				{
+					if (isAirCheckpoint2)
+					{
+						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.RingDoubleArrow,
+							positionAir2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
+					}
+					else
+					{
+						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.CylinderDoubleArrow,
+							position2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
+					}
+				}
+
 				else if (type == MarkerType.raceFinish)
-					newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.CylinderCheckerboard3,
-						position2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
-				else if (type == MarkerType.raceAirFinish)
-					newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
-						positionAir2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
+				{
+					if (isAirCheckpoint2)
+					{
+						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
+							positionAir2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
+					}
+					else
+					{
+						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.CylinderCheckerboard3,
+							position2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
+					}
+				}
 			
 
 				// create blip
@@ -306,7 +332,7 @@ namespace LapTimer
 		placement,
 		raceArrow,
 		raceFinish,
-		raceAirArrow,
-		raceAirFinish,
+		//raceAirArrow,
+		//raceAirFinish,
 	}
 }

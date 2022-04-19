@@ -227,10 +227,12 @@ namespace LapTimer
 		{
 			if (marker.active)
 			{
-				marker.checkpoint.Delete();
+				// The game apparently won't create any more checkpoints if there are too
+				// many loaded, leading to potentially null marker.checkpoint values.
+				marker.checkpoint?.Delete(); 
 				marker.blip.Delete();
 				if (hasSecondaryCheckpoint) {
-					marker.checkpoint2.Delete();
+					marker.checkpoint2?.Delete();
 					marker.blip2.Delete();
 				}
 			}

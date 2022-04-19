@@ -25,6 +25,7 @@ def convert_json(j):
     cpbs1 = j['mission']['race'].get('cpbs1')
     rndchk = j['mission']['race'].get('rndchk')
     rndchks = j['mission']['race'].get('rndchks')
+    dhprop = j['mission'].get('dhprop')
 
     d = dict()
     d['checkpoints'] = []
@@ -38,8 +39,12 @@ def convert_json(j):
         d['spawn'] = to_vector3(j['mission']['race']['vspn0'][0])
     else:
         d['spawn'] = to_vector3(j['mission']['race']['vspn0'][-1])
-    num = 0
+    d['dhprops'] = []
+    if dhprop:
+        for i in range(len(dhprop['mn'])):
+            d['dhprops'].append({'pos': to_vector3(dhprop['pos'][i]), 'modelHash': dhprop['mn'][i]})
 
+    num = 0
     for i in range(len(chl)):
         pos = to_vector3(chl[i])
         quat = to_quat(chh[i])

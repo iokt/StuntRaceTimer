@@ -62,6 +62,9 @@ namespace LapTimer
 			if (race.raceMode)
 			{
 				race.timescaleControl();
+				race.removeProps(wait: 250);
+				race.removeVehicles(wait: 251);
+				race.removePeds(wait: 252);
 				race.preventCharSwitch();
 				race.preventVehicleExit();
 				race.preventTrain();

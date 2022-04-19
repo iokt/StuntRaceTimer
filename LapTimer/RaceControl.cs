@@ -820,6 +820,45 @@ namespace LapTimer
             }
 			Game.TimeScale = timescaleValue;
 		}
+		public dhprop[] dhprops;
+		private int lastPropRemoval = 0;
+		public void removeProps(bool toggle = false, int wait = 0)
+		{
+			if (dhprops == null || Game.GameTime - lastPropRemoval < wait) return;
+			for (int i = 0; i < dhprops.Length; i++)
+            {
+				Prop p = World.GetClosestProp(dhprops[i].pos, 1f, dhprops[i].modelHash);
+				if (p != null)
+				{
+					p.IsCollisionEnabled = toggle;
+					p.IsVisible = toggle;
+				}
+            }
+			lastPropRemoval = Game.GameTime;
+        }
+
+		private int lastVehicleRemoval = 0;
+		public void removeVehicles(int wait = 0)
+        {
+			if (Game.GameTime - lastVehicleRemoval < wait) return;
+			Vehicle[] nearby = World.GetNearbyVehicles(Game.Player.Character, 100f);
+			for (int i = 0; i < nearby.Length; i++)
+            {
+				nearby[i].Delete();
+            }
+			lastVehicleRemoval = Game.GameTime;
+        }
+		private int lastPedRemoval = 0;
+		public void removePeds(int wait = 0)
+        {
+			if (Game.GameTime - lastPedRemoval < wait) return;
+			Ped[] nearby = World.GetNearbyPeds(Game.Player.Character, 100f);
+			for (int i = 0; i < nearby.Length; i++)
+			{
+				nearby[i].Delete();
+			}
+			lastPedRemoval = Game.GameTime;
+		}
 		public void preventTrain()
         {
 			Function.Call(Hash.SET_DISABLE_RANDOM_TRAINS_THIS_FRAME, true);
@@ -1173,8 +1212,10 @@ namespace LapTimer
 				tasRecordToggle();
             }
 
-			raceMode = false;
+			removeProps(toggle: true);
 			Function.Call(Hash.SET_STUNT_JUMPS_CAN_TRIGGER, true);
+
+			raceMode = false;
 		}
 
 		#endregion
@@ -1387,7 +1428,7 @@ namespace LapTimer
 			string name = GTA.Game.GetUserInput("custom_race");
 
 			// export the race using RaceExporter
-			string fileName = RaceExporter.serializeToJson(RaceExporter.createExportableRace(name, markedSectorCheckpoints, lapRace, markedSectorCheckpoints.Last().position), name);
+			string fileName = RaceExporter.serializeToJson(RaceExporter.createExportableRace(name, markedSectorCheckpoints, dhprops, lapRace, markedSectorCheckpoints.Last().position), name);
 
 			// inform user of the exported file
 			GTA.UI.Notification.Show("Lap Timer: exported race as " + fileName);
@@ -1419,6 +1460,7 @@ namespace LapTimer
 				lapRace = race.lapMode;
 				spawn = race.spawn;
 				raceName = race.name;
+				dhprops = race.dhprops;
 				for (int i = 0; i < race.checkpoints.Length; i++)
 				{
 					SimplifiedCheckpoint sc = race.checkpoints[i];

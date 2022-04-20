@@ -78,6 +78,9 @@ namespace LapTimer
 				//ORDER IS IMPORTANT: don't re-record last frame of playback
 				if (race.tasRecordMode) race.tasRecord();
 				if (race.tasPlaybackMode) race.tasPlayback();
+
+				if (race.mustLoadReplay)
+					race.loadReplay();
 				
 			}
 			Vehicle veh = Game.Player.Character.CurrentVehicle;

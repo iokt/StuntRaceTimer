@@ -240,19 +240,24 @@ namespace LapTimer
 			return fileName;
 		}
 
-		new public static ExportableReplay deserializeFromJson(string fileName, bool exactPath = false)
+		new public static void deserializeFromJson(RaceControl race, string fileName, bool exactPath = false)
 		{
 			try
 			{
-				// attempt to open the file for reading
-				//fileName = getFilePath(fileName);
-				string filePath = exactPath ? fileName : rootPath + fileName;   // if exactPath is false, then prepend rootPath
-				System.IO.FileStream file = System.IO.File.OpenRead(filePath);// + ".gz");
-				System.IO.Compression.GZipStream filegz = new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionMode.Decompress);
+				new Thread(() =>
+				{
+					// attempt to open the file for reading
+					//fileName = getFilePath(fileName);
+					string filePath = exactPath ? fileName : rootPath + fileName;   // if exactPath is false, then prepend rootPath
+					System.IO.FileStream file = System.IO.File.OpenRead(filePath);// + ".gz");
+					System.IO.Compression.GZipStream filegz = new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionMode.Decompress);
 
-				// instantiate JSON deserializer
-				var deserializer = new DataContractJsonSerializer(typeof(ExportableReplay));
-				return (ExportableReplay)deserializer.ReadObject(filegz);
+					// instantiate JSON deserializer
+					var deserializer = new DataContractJsonSerializer(typeof(ExportableReplay));
+					race.replay = (ExportableReplay)deserializer.ReadObject(filegz);
+					race.mustLoadReplay = true;
+					//return (ExportableReplay)deserializer.ReadObject(filegz);
+				}).Start();
 			}
 			catch
 			{

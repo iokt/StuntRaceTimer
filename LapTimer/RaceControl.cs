@@ -60,9 +60,9 @@ namespace LapTimer
 				return Game.GameTime - lapStartTime;
 			}
 			set
-            {
+			{
 				lapStartTime = Game.GameTime - value;
-            }
+			}
 		}
 		public int totalTime
 		{
@@ -71,9 +71,9 @@ namespace LapTimer
 				return Game.GameTime - raceStartTime;
 			}
 			set
-            {
+			{
 				raceStartTime = Game.GameTime - value;
-            }
+			}
 		}
 		public int pbTime
 		{
@@ -196,10 +196,10 @@ namespace LapTimer
 			if (veh == null) {
 				Vehicle temp = World.GetClosestVehicle(Game.Player.Character.Position, float.MaxValue);
 				if (temp != null)
-                {
+				{
 					Game.Player.Character.SetIntoVehicle(temp, VehicleSeat.Driver);
 					respawn();
-                }
+				}
 				veh = Game.Player.Character.CurrentVehicle;
 				if (veh == null)
 				{
@@ -207,7 +207,7 @@ namespace LapTimer
 					exitRaceMode();
 					return int.MaxValue;
 				}
-				else 
+				else
 					respawn();
 			}
 
@@ -233,7 +233,7 @@ namespace LapTimer
 			bool inRangeZ2 = false;
 			if (activeCheckpoint.hasSecondaryCheckpoint)
 			{
-				float zAdd2 = activeCheckpoint.isAirCheckpoint2 ? 0f : 0f; 
+				float zAdd2 = activeCheckpoint.isAirCheckpoint2 ? 0f : 0f;
 				float radius2 = activeCheckpoint.isAirCheckpoint2 ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
 				float dist2;
 				if (force3D) dist2 = Game.Player.Character.Position.DistanceTo(activeCheckpoint.position2 + new Vector3(0f, 0f, zAdd2));
@@ -332,13 +332,16 @@ namespace LapTimer
 
 		public bool tasPlaybackMode = false;
 		public bool tasRecordMode = false;
-		
+
 		public List<tasRecEntry> tasRecEntries;
 		private void tasAppendCurrent(int offset)
-        {
+		{
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
 			if (veh == null) return;
 			tasRecEntry current = new tasRecEntry();
+			//Meta
+			current.model = veh.Model.Hash;
+
 			//Timing
 			current.frametime = Game.LastFrameTime;
 			current.gametime = Game.GameTime;
@@ -354,7 +357,6 @@ namespace LapTimer
 			current.rvel = veh.WorldRotationVelocity;
 
 			//Driving and Turning
-			current.model = veh.Model.Hash;
 			current.brakepower = veh.BrakePower;
 			current.clutch = veh.Clutch;
 			current.currentgear = veh.CurrentGear;
@@ -375,22 +377,22 @@ namespace LapTimer
 			List<wheelProperties> wheelprops = new List<wheelProperties>();
 			VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
 			for (int i = 0; i < wheels.Length; i++)
-            {
+			{
 				List<int> mem = new List<int>();
 				IntPtr addr = wheels[i].MemoryAddress;
 				if (addr == IntPtr.Zero) break;
-				for (int j = 0; j < wheelMemSize/intSize; j++)
-                {
-					unsafe 
+				for (int j = 0; j < wheelMemSize / intSize; j++)
+				{
+					unsafe
 					{
-						int *newaddr = (int *)addr;
-						mem.Add(*(newaddr+j));
+						int* newaddr = (int*)addr;
+						mem.Add(*(newaddr + j));
 					}
-                }
+				}
 				wheelProperties wheel = new wheelProperties();
 				wheel.memory = mem.ToArray();
 				wheelprops.Add(wheel);
-            }
+			}
 			current.wheels = wheelprops.ToArray();
 
 			/**IntPtr addr = veh.Wheels.ToList()[0].MemoryAddress;
@@ -479,22 +481,22 @@ namespace LapTimer
 		}
 		private bool disableCinCamToggle = false;
 		public void tasRecord()
-        {
+		{
 			if (!tasPlaybackMode)
 			{
 				int exittime = 0;
 				int offset = 0;
 				if (tasRecEntries.Count > 0)
-                {
+				{
 					exittime = tasRecEntries.Last().exitplaybacktime;
 					offset = tasRecEntries.Last().offset;
-                }
+				}
 				if (exittime > 0)
-                {
+				{
 					offset += (tasRecEntries.Last().gametime - exittime);
-                }
+				}
 				tasAppendCurrent(offset);
-				GTA.UI.Screen.ShowSubtitle("~r~~ws~RECORDING "+timescaleValue.ToString()+"x~ws~", 1);
+				GTA.UI.Screen.ShowSubtitle("~r~~ws~RECORDING " + timescaleValue.ToString() + "x~ws~", 1);
 
 				Game.DisableControlThisFrame(Control.VehicleCinCam);
 				if (Game.IsControlJustPressed(Control.VehicleCinCam))
@@ -503,23 +505,36 @@ namespace LapTimer
 					disableCinCamToggle = true;
 				}
 			}
-			
+
 		}
 
 		public void tasRecordToggle()
-        {
+		{
 			//if (tasPlaybackMode) return;
 			if (tasRecordMode)
-            {
+			{
 				exportReplay();
-            }
+			}
 			else if (!tasPlaybackMode)
-            {
+			{
 				tasRecEntries = new List<tasRecEntry>();
 			}
 			tasRecordMode = !tasRecordMode;
 		}
 
+		private static int[] bikeMemIndexes = { 16, 17, 18, 20, 21, 22, 23, 24, 25,
+			26, 27, 28, 29, 30, 32, 33, 34, 40, 41, 42, 43, 44, 45, 46, 47,
+			48, 49, 50, 51, 88, 89, 90, 91, 92, 93, 94, 
+			//96, 97, 98, 99,
+			102, 104, 110, 111, 112, 113, 114, 115, 116, 117, 119, 120, 128, 130, 
+			136 };
+		private static int[] carMemIndexes = { 16, 17, 18, 19, 20, 21, 22, 24, 25,
+			26, 27, 28, 29, 30, 31, 32, 33, 34, 40, 41, 42, 43, 44, 45, 46, 47,
+			48, 49, 50, 51, 88, 89, 90, 91, 92, 93, 94, 
+			//96, 97, 98, 99,
+			102, 104, 110, 111, 112, 113, 115, 116, 117, 119, 120, 128, 130 };
+		private static HashSet<int> bikeMemIndexSet = new HashSet<int>(bikeMemIndexes);
+		private static HashSet<int> carMemIndexSet = new HashSet<int>(carMemIndexes);
 		private void tasPlayCurrent(tasRecEntry current)
 		{
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
@@ -573,10 +588,14 @@ namespace LapTimer
 						if (addr == IntPtr.Zero) break;
 						for (int j = 0; j < wheelMemSize / intSize; j++)
 						{
-							unsafe
+							if ((veh.IsMotorcycle && bikeMemIndexSet.Contains(j)) || 
+								(veh.IsRegularAutomobile && carMemIndexSet.Contains(j)))
 							{
-								int* newaddr = (int*)addr;
-								*(newaddr + j) = wheelprops[i].memory[j];
+								unsafe
+								{
+									int* newaddr = (int*)addr;
+									*(newaddr + j) = wheelprops[i].memory[j];
+								}
 							}
 						}
 					}
@@ -1567,9 +1586,15 @@ namespace LapTimer
 			// export file
 			TimingSheetExporter.serializeToJson(timingSheet, raceHash.ToString());
 		}
+
+		public bool mustLoadReplay = false;
+		public ExportableReplay replay;
 		public void importReplay(string path)
-        {
-			ExportableReplay replay = replayExporter.deserializeFromJson(path, true);
+		{
+			replayExporter.deserializeFromJson(this, path, true);
+		}
+
+		public void loadReplay() {
 			if (tasRecordMode)
             {
 				tasRecordToggle();
@@ -1579,6 +1604,8 @@ namespace LapTimer
 				tasPlaybackToggle();
             }
 			tasRecEntries = replay.entries.ToList();
+			mustLoadReplay = false;
+			GTA.UI.Screen.ShowSubtitle("Replay Loaded");
 		}
 
 		public void exportReplay()

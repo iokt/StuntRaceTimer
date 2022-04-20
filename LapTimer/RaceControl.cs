@@ -889,6 +889,34 @@ namespace LapTimer
 			}
 			lastPedRemoval = Game.GameTime;
 		}
+		private bool clampInMidair = false;
+		public void betterCamera()
+        {
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			if (veh == null) return;
+			//Function.Call(Hash._ANIMATE_GAMEPLAY_CAM_ZOOM, 1f, 1000f);
+			//GTA.UI.Screen.ShowSubtitle(((int)Function.Call<float>(Hash.GET_GAMEPLAY_CAM_RELATIVE_PITCH)).ToString() + "\t" + 
+			//	((int)Function.Call<float>(Hash.GET_GAMEPLAY_CAM_RELATIVE_HEADING)).ToString());
+			if (!veh.IsMotorcycle || (!veh.IsInAir && veh.Velocity.Z > 0) || clampInMidair)
+			{
+				//Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, Math.Min((Math.Max(20f*veh.ForwardVector.Z, 0f)-1f) * 90f, 0f), 90f);
+				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, -90f, 90f);
+				//if (Function.Call<Vector3>(Hash.GET_GAMEPLAY_CAM_COORD).DistanceTo(veh.Position) < 100f)
+				//	Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_PITCH, 20f * veh.UpVector.Z, 1f);
+
+				//Function.Call(Hash._CLAMP_GAMEPLAY_CAM_YAW, -180f, 180f);
+				//Function.Call(Hash._ANIMATE_GAMEPLAY_CAM_ZOOM);
+				if (Math.Abs(Function.Call<float>(Hash.GET_GAMEPLAY_CAM_RELATIVE_PITCH)) > 88f)
+					clampInMidair = false;
+				else
+					clampInMidair = true;
+			}
+			if (false && tasPlaybackMode && tasPlaybackPaused)
+            {
+				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, 0f, 0f);
+				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_YAW, 0f, 0f);
+			}
+		}
 		public void preventTrain()
         {
 			Function.Call(Hash.SET_DISABLE_RANDOM_TRAINS_THIS_FRAME, true);

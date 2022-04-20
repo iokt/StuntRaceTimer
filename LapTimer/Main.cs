@@ -65,6 +65,7 @@ namespace LapTimer
 				race.removeProps(wait: 250);
 				race.removeVehicles(wait: 251);
 				race.removePeds(wait: 252);
+				race.betterCamera();
 				race.preventCharSwitch();
 				race.preventVehicleExit();
 				race.preventTrain();

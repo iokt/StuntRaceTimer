@@ -31,7 +31,7 @@ namespace LapTimer
 		// placement constants
 		public const float checkpointRadius = 12.0f;
 		public const float checkpointAirRadius = 22.5f;
-		public const float zClamp = -9.25f; //random guess
+		public const float zClamp = -9.0f; //tested
 		private readonly float doubleArrowThresh = 45.0f; //degrees
 		private readonly float tripleArrowThresh = 90.0f; //degrees
 		private readonly Vector3 checkpointOffset = new Vector3(0.0f, 0.0f, 0.0f); //new Vector3(0.0f, 0.0f, -1.0f);	// visually, the checkpoint will be offset by this vector

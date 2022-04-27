@@ -288,7 +288,77 @@ namespace LapTimer
 			return 0;
 		}
 
+		public void toggleDebugMode()
+		{
+			if (debugMode)
+			{
+				Game.Player.Character.Opacity = 255;
+				Vehicle veh = Game.Player.Character.CurrentVehicle;
+				if (veh != null)
+					veh.Opacity = 255;
+			}
+			debugMode = !debugMode;
+		}
+		public bool debugMode = false;
+		public void drawDebug()
+		{
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			if (veh == null) return;
 
+			veh.Opacity = 50;
+			Game.Player.Character.Opacity = 50;
+			Color cyan = Color.FromArgb(100, 0, 255, 255);
+			float markerheight = 10f;
+			float mr = .035f;
+			float zc = SectorCheckpoint.zClamp;
+			//Color.
+
+			float radius = activeCheckpoint.isAirCheckpoint ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
+			radius *= activeCheckpoint.chs;
+			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position, Vector3.Zero, Vector3.Zero, new Vector3(radius, radius, radius), cyan);
+			float zcr = 2f * (float)Math.Sqrt(radius * radius - zc * zc);
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr, zcr, 1f), Color.Red);
+
+			Vector3 dir = (veh.Position - activeCheckpoint.position).Normalized * Math.Min(radius, veh.Position.DistanceTo(activeCheckpoint.position));
+			if (dir.Z < zc && zc < 0f)
+			{
+				dir.Z = zc;
+				//dir *= zc / dir.Z;
+			}
+			Vector3 limitpos = activeCheckpoint.position + dir;
+			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
+			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+
+			if (activeCheckpoint.hasSecondaryCheckpoint)
+			{
+				float radius2 = activeCheckpoint.isAirCheckpoint2 ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
+				radius2 *= activeCheckpoint.chs2;
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position2, Vector3.Zero, Vector3.Zero, new Vector3(radius2, radius2, radius2), cyan);
+				float zcr2 = 2f * (float)Math.Sqrt(radius2 * radius2 - zc * zc);
+				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position2 + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr2, zcr2, 1f), Color.Red);
+
+				Vector3 dir2 = (veh.Position - activeCheckpoint.position2).Normalized * Math.Min(radius2, veh.Position.DistanceTo(activeCheckpoint.position2));
+				if (dir2.Z < zc && zc < 0f)
+				{
+					dir2.Z = zc;
+					//dir *= zc / dir.Z;
+				}
+				Vector3 limitpos2 = activeCheckpoint.position2 + dir2;
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+			}
+
+			
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero, 
+				Vector3.Zero, new Vector3(mr, mr, markerheight), Color.Blue);
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero, 
+				new Vector3(-90f, 0f, 0f), new Vector3(mr, mr, markerheight), Color.Green);
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitX * markerheight / 2f, Vector3.Zero,
+				new Vector3(0f, 90f, 0f), new Vector3(mr, mr, markerheight), Color.Red);
+
+			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, veh.Position, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.Purple);
+			//GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position, -veh.UpVector, Vector3.Zero, new Vector3(.1f, .1f, 10f), cyan);
+		}
 
 		/// <summary>
 		/// Delete the last <c>SectorCheckpoint</c>. First delete its <c>Marker</c>, then remove the checkpoint from <c>markedSectorCheckpoints</c>.
@@ -522,6 +592,7 @@ namespace LapTimer
 			tasRecordMode = !tasRecordMode;
 		}
 
+		//Index 130 determines glide acceleration
 		private static int[] bikeMemIndexes = { 16, 17, 18, 20, 21, 22, 23, 24, 25,
 			26, 27, 28, 29, 30, 32, 33, 34, 40, 41, 42, 43, 44, 45, 46, 47,
 			48, 49, 50, 51, 88, 89, 90, 91, 92, 93, 94, 

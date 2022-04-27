@@ -61,6 +61,13 @@ namespace LapTimer
 			// race mode checkpoint detection
 			if (race.raceMode)
 			{
+				//ORDER IS IMPORTANT: don't re-record last frame of playback
+				if (race.tasRecordMode) race.tasRecord();
+				if (race.tasPlaybackMode) race.tasPlayback();
+
+				if (race.mustLoadReplay)
+					race.loadReplay();
+
 				race.timescaleControl();
 				race.removeProps(wait: 250);
 				race.removeVehicles(wait: 251);
@@ -72,15 +79,12 @@ namespace LapTimer
 				//race.checkBikeCollisions();
 				race.resetHealth();
 				race.activeCheckpointDetection();
+				if (race.debugMode)
+					race.drawDebug();
 				race.updatePools();
 				race.pool.Draw();
 
-				//ORDER IS IMPORTANT: don't re-record last frame of playback
-				if (race.tasRecordMode) race.tasRecord();
-				if (race.tasPlaybackMode) race.tasPlayback();
-
-				if (race.mustLoadReplay)
-					race.loadReplay();
+				
 				
 			}
 			Vehicle veh = Game.Player.Character.CurrentVehicle;

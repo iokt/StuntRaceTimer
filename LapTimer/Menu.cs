@@ -77,10 +77,13 @@ namespace LapTimer
 			// add controls to enter placement & race modes
 			UIMenuItem placementToggle = new UIMenuItem("Toggle Placement Mode");
 			UIMenuItem raceToggle = new UIMenuItem("Toggle Race Mode");
+			UIMenuItem debugToggle = new UIMenuItem("Toggle Debug Mode");
 			placementToggle.Activated += (menu, sender) => race.togglePlacementMode();
 			raceToggle.Activated += (menu, sender) => race.toggleRaceMode();
+			debugToggle.Activated += (menu, sender) => race.toggleDebugMode();
 			mainMenu.AddItem(placementToggle);
 			mainMenu.AddItem(raceToggle);
+			mainMenu.AddItem(debugToggle);
 
 			// add control to export race
 			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");

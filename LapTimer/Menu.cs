@@ -74,7 +74,7 @@ namespace LapTimer
 			UIMenu lapTimeMenu = _menuPool.AddSubMenu(mainMenu, "Lap Times", "Display lap times for the current race");
 			lapTimeMenu.OnMenuOpen += loadLapTimeMenu;
 
-			// add controls to enter placement & race modes
+			// add controls to enter placement, race, debug modes
 			UIMenuItem placementToggle = new UIMenuItem("Toggle Placement Mode");
 			UIMenuItem raceToggle = new UIMenuItem("Toggle Race Mode");
 			UIMenuItem debugToggle = new UIMenuItem("Toggle Debug Mode");
@@ -89,6 +89,10 @@ namespace LapTimer
 			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");
 			exportRaceItem.Activated += (menu, sender) => race.exportRace();
 			mainMenu.AddItem(exportRaceItem);
+
+			UIMenuItem exportReplayItem = new UIMenuItem("Export Replay");
+			exportReplayItem.Activated += (menu, sender) => race.exportReplay(askname: true);
+			mainMenu.AddItem(exportReplayItem);
 
 			mainMenu.RefreshIndex();
 			return mainMenu;

@@ -277,7 +277,15 @@ namespace LapTimer
 
 					// activate next checkpoint if race mode is still active
 					if (raceMode)
+					{
+						bool warp = Convert.ToBoolean(activeCheckpoint.cpbs1 & (1 << 27));
 						activateRaceCheckpoint(activeSector + 1);
+						if (warp)
+                        {
+							warpToCheckpoint(activeSector);
+                        }
+							
+					}
 				}
 			}
 			catch (Exception e)
@@ -292,10 +300,10 @@ namespace LapTimer
 		{
 			if (debugMode)
 			{
-				Game.Player.Character.Opacity = 255;
+				Function.Call(Hash.RESET_ENTITY_ALPHA, Game.Player.Character.Handle);
 				Vehicle veh = Game.Player.Character.CurrentVehicle;
 				if (veh != null)
-					veh.Opacity = 255;
+					Function.Call(Hash.RESET_ENTITY_ALPHA, veh.Handle);
 			}
 			debugMode = !debugMode;
 		}
@@ -1166,6 +1174,41 @@ namespace LapTimer
 			}
         }
 
+		public void warpToCheckpoint(int idx)
+        {
+			SectorCheckpoint warpTo = markedSectorCheckpoints[idx];
+			warpToPosition(warpTo.position, warpTo.quaternion);
+		}
+
+		public void warpToPosition(Vector3 pos, Quaternion quat)
+        {
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+
+			tasRecEntry current = new tasRecEntry();
+
+			current.vel = veh.Velocity;
+			current.clutch = veh.Clutch;
+			current.currentgear = veh.CurrentGear;
+			current.rpm = veh.CurrentRPM;
+			current.nextgear = veh.NextGear;
+			current.throttle = veh.Throttle;
+			current.throttlepower = veh.ThrottlePower;
+			current.turbo = veh.Turbo;
+
+			veh.Position = pos;
+			veh.Quaternion = quat;
+
+			float speed = current.vel.Length();
+			veh.Velocity = veh.ForwardVector * speed;
+			veh.Clutch = current.clutch;
+			veh.CurrentGear = current.currentgear;
+			veh.CurrentRPM = current.rpm;
+			veh.NextGear = current.nextgear;
+			veh.Throttle = current.throttle;
+			veh.ThrottlePower = current.throttlepower;
+			veh.Turbo = current.turbo;
+		}
+
 		private string formatTimestring(int time)
         {
 			return String.Format("{0:00}:{1:00}.{2:000}", time / (60 * 1000), (time % (60 * 1000)) / 1000, time % 1000);
@@ -1679,8 +1722,10 @@ namespace LapTimer
 			GTA.UI.Screen.ShowSubtitle("Replay Loaded");
 		}
 
-		public void exportReplay()
+		public void exportReplay(bool askname = false)
         {
+			if (tasRecEntries == null) return;
+
 			// compute the hash code of this race
 			int raceHash = GetHashCode();
 
@@ -1692,7 +1737,21 @@ namespace LapTimer
 				entries = tasRecEntries.ToArray()
 			};
 
-			replayExporter.serializeToJson(replay, raceName + "_" + raceHash.ToString("x8") + "_" + ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds().ToString());
+			string name = raceName + "_" + raceHash.ToString("x8") + "_" + ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds().ToString();
+
+			if (askname)
+			{
+				// prompt user to enter a name for the replay
+				name = GTA.Game.GetUserInput(WindowTitle.EnterSynopsis, name, 125);
+
+				char[] remove = System.IO.Path.GetInvalidFileNameChars();
+				foreach (char c in remove)
+				{
+					name = name.Replace(c, '_');
+				}
+			}
+
+			replayExporter.serializeToJson(replay, name);
 		}
 
 		/// <summary>

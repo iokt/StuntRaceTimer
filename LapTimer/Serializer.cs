@@ -29,7 +29,7 @@ namespace LapTimer
 		/// <param name="chkpts">List of SectorCheckpoints</param>
 		/// <param name="lapMode">Whether the race should run in lap mode</param>
 		/// <returns></returns>
-		public static ExportableRace createExportableRace (string name, List<SectorCheckpoint> chkpts, dhprop[] dhprops, bool lapMode, Vector3 spawn){
+		public static ExportableRace createExportableRace (string name, List<SectorCheckpoint> chkpts, prop[] props, dhprop[] dhprops, bool lapMode, Vector3 spawn){
 			// create new instance of ExportableRace & set metadata
 			ExportableRace race = new ExportableRace();
 			race.name = name;
@@ -37,6 +37,7 @@ namespace LapTimer
 			race.numCheckpoints = chkpts.Count;
 			race.version = scriptVersion;
 			race.spawn = spawn;
+			race.props = props;
 			race.dhprops = dhprops;
 
 			// iterate over list of SectorCheckpoints and simplify each before adding to ExportableRace
@@ -318,6 +319,7 @@ namespace LapTimer
 		public bool lapMode;
 		public int numCheckpoints;
 		public SimplifiedCheckpoint[] checkpoints;
+		public prop[] props;
 		public dhprop[] dhprops;
 	}
 
@@ -450,6 +452,12 @@ namespace LapTimer
 		public float vehtransform;
     }
 
+	public struct prop
+    {
+		public Vector3 pos;
+		public int modelHash;
+		public int speedup;
+    }
 	public struct dhprop
     {
 		public Vector3 pos;

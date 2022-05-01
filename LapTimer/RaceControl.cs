@@ -281,10 +281,10 @@ namespace LapTimer
 						bool warp = Convert.ToBoolean(activeCheckpoint.cpbs1 & (1 << 27));
 						activateRaceCheckpoint(activeSector + 1);
 						if (warp)
-                        {
+						{
 							warpToCheckpoint(activeSector);
-                        }
-							
+						}
+
 					}
 				}
 			}
@@ -356,10 +356,10 @@ namespace LapTimer
 				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
 			}
 
-			
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero, 
+
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero,
 				Vector3.Zero, new Vector3(mr, mr, markerheight), Color.Blue);
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero, 
+			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero,
 				new Vector3(-90f, 0f, 0f), new Vector3(mr, mr, markerheight), Color.Green);
 			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitX * markerheight / 2f, Vector3.Zero,
 				new Vector3(0f, 90f, 0f), new Vector3(mr, mr, markerheight), Color.Red);
@@ -605,7 +605,7 @@ namespace LapTimer
 			26, 27, 28, 29, 30, 32, 33, 34, 40, 41, 42, 43, 44, 45, 46, 47,
 			48, 49, 50, 51, 88, 89, 90, 91, 92, 93, 94, 
 			//96, 97, 98, 99,
-			102, 104, 110, 111, 112, 113, 114, 115, 116, 117, 119, 120, 128, 130, 
+			102, 104, 110, 111, 112, 113, 114, 115, 116, 117, 119, 120, 128, 130,
 			136 };
 		private static int[] carMemIndexes = { 16, 17, 18, 19, 20, 21, 22, 24, 25,
 			26, 27, 28, 29, 30, 31, 32, 33, 34, 40, 41, 42, 43, 44, 45, 46, 47,
@@ -619,21 +619,21 @@ namespace LapTimer
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
 			if (veh == null) return;
 			int syncPlaybackFrames = 1;
-			if ((syncPlaybackFrames > 0 && (tasPlaybackIndex-tasPlaybackStartIndex) % syncPlaybackFrames == 0) || (tasPlaybackIndex - tasPlaybackStartIndex) < 60)
+			if ((syncPlaybackFrames > 0 && (tasPlaybackIndex - tasPlaybackStartIndex) % syncPlaybackFrames == 0) || (tasPlaybackIndex - tasPlaybackStartIndex) < 60)
 			{
 				//Timing
 				if (current.laptime >= 0)
-                {
+				{
 					lapTime = current.laptime;
-                }
+				}
 				if (current.totaltime >= 0)
-                {
+				{
 					totalTime = current.totaltime;
-                }
+				}
 				if (current.activecheckpoint >= 0 && current.activecheckpoint != activeSector)
-                {
+				{
 					activateRaceCheckpoint(current.activecheckpoint);
-                }
+				}
 
 				//Position, Rotation, Velocity
 				veh.PositionNoOffset = current.pos;
@@ -667,7 +667,7 @@ namespace LapTimer
 						if (addr == IntPtr.Zero) break;
 						for (int j = 0; j < wheelMemSize / intSize; j++)
 						{
-							if ((veh.IsMotorcycle && bikeMemIndexSet.Contains(j)) || 
+							if ((veh.IsMotorcycle && bikeMemIndexSet.Contains(j)) ||
 								(veh.IsRegularAutomobile && carMemIndexSet.Contains(j)))
 							{
 								unsafe
@@ -747,29 +747,29 @@ namespace LapTimer
 		private bool tasPlaybackPauseOnNextFrame = false;
 		//private int tasPlaybackPausedAt = 0;
 		public void tasPlayback()
-        {
+		{
 			if (!tasPlaybackExitNextFrame && tasRecEntries != null && tasPlaybackIndex < tasRecEntries.Count)
-            {
+			{
 				if (tasPlaybackStartTime <= 0) tasPlaybackStartTime = Game.GameTime;
 				tasPlaybackControl();
 
 				tasRecEntry current = tasRecEntries[tasPlaybackIndex];
 				if (tasPlaybackIndex + 1 == tasRecEntries.Count)
-                {
+				{
 					tasPlaybackExitNextFrame = true;
-					
+
 				}
 				bool waitFrame = false;
 				int killloop = 0;
 				//Timing: skip back or ahead if playback time doesn't match recording time
 				while (killloop < 5 && !tasPlaybackPaused && (tasPlaybackIndex - 1 >= 0) && (tasPlaybackIndex + 1 < tasRecEntries.Count))
-                {
+				{
 					//int totalTime = (current.gametime - tasRecEntries[tasPlaybackStartIndex].gametime) + current.offset;
 					//int playbackTime = (Game.GameTime - tasPlaybackStartTime);
-					int searchFor = (Game.GameTime - tasPlaybackStartTime) - 
+					int searchFor = (Game.GameTime - tasPlaybackStartTime) -
 						((current.offset - tasRecEntries[tasPlaybackStartIndex].offset) - tasRecEntries[tasPlaybackStartIndex].gametime);
 					//int frameTime = (int)(current.frametime * 1000);
-					
+
 					tasRecEntry prev = tasRecEntries[tasPlaybackIndex - 1];
 					tasRecEntry next = tasRecEntries[tasPlaybackIndex + 1];
 					if (Math.Abs(prev.gametime - searchFor) < Math.Abs(current.gametime - searchFor))
@@ -802,7 +802,7 @@ namespace LapTimer
 					GTA.UI.Screen.ShowSubtitle("~b~~ws~PLAYBACK " + timescaleValue.ToString() + "x~ws~~n~", 1);
 			}
 			else
-            {
+			{
 				tasPlaybackExitNextFrame = true;
 			}
 			if (tasPlaybackExitNextFrame || tasPlaybackIndex == tasRecEntries.Count)
@@ -815,7 +815,7 @@ namespace LapTimer
 					{
 						current = tasRecEntries[tasPlaybackIndex - 1];
 						current.exitplaybacktime = Game.GameTime;
-						tasRecEntries[tasPlaybackIndex - 1] = current; 
+						tasRecEntries[tasPlaybackIndex - 1] = current;
 					}
 				}
 				tasPlaybackMode = false;
@@ -823,11 +823,11 @@ namespace LapTimer
 				tasPlaybackStartIndex = 0;
 				tasPlaybackStartTime = 0;
 				tasPlaybackPaused = false;
-				
+
 				tasPlaybackExitNextFrame = false;
 			}
-			else if (tasPlaybackPauseOnNextFrame) 
-			{ 
+			else if (tasPlaybackPauseOnNextFrame)
+			{
 				//tasPlaybackPaused = true;
 				tasPlaybackPauseOnNextFrame = false;
 			}
@@ -835,34 +835,34 @@ namespace LapTimer
 		}
 		private int tasPlaybackRecordAt = int.MaxValue;
 		private void tasPlaybackControl()
-        {
+		{
 			if (Game.GameTime >= tasPlaybackRecordAt)
 			{
 				tasPlaybackToggle();
 				tasPlaybackRecordAt = int.MaxValue;
 			}
 			if (tasRecordMode)
-            {
+			{
 				Game.DisableControlThisFrame(Control.VehicleCinCam);
 				if (Game.IsControlJustPressed(Control.VehicleCinCam) && !disableCinCamToggle)
-                {
+				{
 					tasPlaybackRecordAt = Game.GameTime + 0;// freezeTime;
-                }
+				}
 				else
-                {
+				{
 					disableCinCamToggle = false;
-                }
-            }
+				}
+			}
 			Game.DisableControlThisFrame(Control.Phone);
 			Game.DisableControlThisFrame(Control.PhoneUp);
 			if (Game.IsControlJustPressed(Control.PhoneUp))
 			{
 				tasPlaybackPaused = !tasPlaybackPaused;
 			}
-			
+
 			//Game.EnableControlThisFrame(Control.VehicleAim);
 			float seekDirection = 0f;
-			if (tasPlaybackPaused) 
+			if (tasPlaybackPaused)
 			{
 				if (Game.IsControlPressed(Control.VehicleAim))
 				{
@@ -870,11 +870,11 @@ namespace LapTimer
 					seekDirection = Game.GetDisabledControlValueNormalized(Control.LookLeftRight);
 				}
 				tasPlaybackSkipRelative((int)(20f * seekDirection));
-            }
-			
-        }
+			}
+
+		}
 		public void tasPlaybackGoTo(int index)
-        {
+		{
 			if (tasPlaybackMode)
 			{
 				index = Math.Max(0, index);
@@ -885,11 +885,11 @@ namespace LapTimer
 			}
 		}
 		public void tasPlaybackSkipRelative(int skip)
-        {
+		{
 			tasPlaybackGoTo(tasPlaybackIndex + skip);
-        }
+		}
 		public void tasPlaybackToggle()
-        {
+		{
 			if (tasPlaybackMode) //&& tasRecEntries != null && tasRecEntries.Count > 0)
 			{
 				if (tasRecordMode)
@@ -897,7 +897,7 @@ namespace LapTimer
 					exportReplay();
 				}
 				tasPlaybackExitNextFrame = true;
-				
+
 			}
 			else
 			{
@@ -911,24 +911,24 @@ namespace LapTimer
 			}
 		}
 		private int timescaleIndex = 3;
-		private float[] timescaleValues = {.25f, .5f, .75f, 1f};
+		private float[] timescaleValues = { .25f, .5f, .75f, 1f };
 		private float timescaleValue
-        {
+		{
 			get
-            {
+			{
 				return timescaleValues[timescaleIndex];
-            }
-        }
+			}
+		}
 		private void setTimescaleDown()
-        {
+		{
 			timescaleIndex = Math.Max(0, timescaleIndex - 1);
-        }
+		}
 		private void setTimescaleUp()
 		{
 			timescaleIndex = Math.Min(timescaleValues.Length - 1, timescaleIndex + 1);
 		}
 		public void timescaleControl()
-        {
+		{
 			Game.DisableControlThisFrame(Control.PhoneLeft);
 			Game.DisableControlThisFrame(Control.VehicleRadioWheel);
 			Game.DisableControlThisFrame(Control.PhoneRight);
@@ -937,15 +937,122 @@ namespace LapTimer
 				setTimescaleDown();
 			}
 			else if (Game.IsControlJustPressed(Control.PhoneRight))
-            {
+			{
 				setTimescaleUp();
-            }
+			}
 			else
-            {
+			{
 				return;
-            }
+			}
 			Game.TimeScale = timescaleValue;
 		}
+
+		//https://en.wikipedia.org/wiki/Jenkins_hash_function#one_at_a_time
+		public int one_at_a_time(string key)
+		{
+			UInt32 hash = 0;
+			foreach (char c in key)
+			{
+				hash += c;
+				hash += hash << 10;
+				hash ^= hash >> 6;
+			}
+			hash += hash << 3;
+			hash ^= hash >> 11;
+			hash += hash << 15;
+			return unchecked((int)hash);
+		}
+
+		public readonly string[] speedupModels = {
+			"ar_prop_ar_speed_ring",
+			"ar_prop_ar_tube_2x_speed",
+			"ar_prop_ar_tube_4x_speed",
+			"ar_prop_ar_tube_speed",
+			"stt_prop_stunt_tube_speed",
+			"stt_prop_stunt_tube_speeda",
+			"stt_prop_stunt_tube_speedb",
+			"stt_prop_track_speedup",
+			"stt_prop_track_speedup_t1",
+			"stt_prop_track_speedup_t2",
+		};
+
+		public readonly string[] slowdownModels =
+		{
+			"stt_prop_track_slowdown",
+			"stt_prop_track_slowdown_t1",
+			"stt_prop_track_slowdown_t2",
+			"xs_prop_track_slowdown",
+			"xs_prop_track_slowdown_t1",
+			"xs_prop_track_slowdown_t2",
+		};
+
+		public readonly Dictionary<int, byte> speedupIntensityLookup = new Dictionary<int, byte>()
+		{
+			{1, 15}, //Weak
+			{2, 25}, //Normal
+			{3, 35}, //Strong
+			{4, 45}, //Extra Strong
+			{5, 100}, //Ultra Strong
+		};
+
+		public readonly Dictionary<int, byte> slowdownIntensityLookup = new Dictionary<int, byte>()
+		{
+			{1, 44}, //Weak
+			{2, 30}, //Normal
+			{3, 16}, //Strong
+		};
+
+		public prop[] props;
+
+		public void setSpeedupIntensity()
+        {
+			if (props == null) return;
+
+			foreach (prop p in props)
+			{
+				Prop[] nearby = World.GetNearbyProps(p.pos, .1f);
+				for (int i = 0; i < nearby.Length; i++)
+				{
+					//default speedup = 30
+					//Function.Call(Hash._SET_OBJECT_STUNT_PROP_SPEEDUP, nearby[i].Handle, 25 + (Game.GameTime % 76));
+					foreach (string m in speedupModels)
+					{
+						if (nearby[i].Model.Hash == one_at_a_time(m))
+						{
+							byte speedup;
+							if (speedupIntensityLookup.TryGetValue(p.speedup, out speedup))
+								Function.Call(Hash._SET_OBJECT_STUNT_PROP_SPEEDUP, nearby[i].Handle, speedup);
+							//GTA.UI.Screen.ShowSubtitle(nearby[i].MemoryAddress.ToString("x"));
+							break;
+						}
+					}
+					foreach (string m in slowdownModels)
+					{
+						if (nearby[i].Model.Hash == one_at_a_time(m))
+						{
+							byte speedup;
+							if (slowdownIntensityLookup.TryGetValue(p.speedup, out speedup))
+								Function.Call(Hash._SET_OBJECT_STUNT_PROP_SPEEDUP, nearby[i].Handle, speedup);
+							//GTA.UI.Screen.ShowSubtitle(nearby[i].MemoryAddress.ToString("x"));
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+
+		//prpsba (for boosts)
+		//1: 0x0f = 15 (Weak)
+		//2: 0x19 = 25 (Normal)
+		//3: 0x23 = 35 (Strong)
+		//4: 0x2d = 45 (Extra Strong)
+		//5: 0x64 = 100 (Ultra Strong)
+		//prpsba (for slowdowns)
+		//1: 0x2c = 44 (Weak)
+		//2: 0x1e = 30 (Normal)
+		//3: 0x10 = 16 (Strong)
+
 		public dhprop[] dhprops;
 		private int lastPropRemoval = 0;
 		public void removeProps(bool toggle = false, int wait = 0)
@@ -1311,8 +1418,11 @@ namespace LapTimer
 			//World.Weather = Weather.ExtraSunny;
 			//World.Weather = Weather.Neutral;
 			Function.Call(Hash._SET_RAIN_LEVEL, 0f);
+			Function.Call(Hash.SET_STUNT_JUMPS_CAN_TRIGGER, false);
 			Game.Player.Character.IsInvincible = true;
 			Game.Player.Character.CanFlyThroughWindscreen = false;
+
+			setSpeedupIntensity();
 
 			pool.Remove(totalTimerBar);
 			pool.Remove(pbTimerBar);
@@ -1374,7 +1484,7 @@ namespace LapTimer
 				pool.Add(pbTimerBar);
 				pool.Add(lapTimerBar);
 			}
-			Function.Call(Hash.SET_STUNT_JUMPS_CAN_TRIGGER, false);
+			
 
 
 
@@ -1619,7 +1729,7 @@ namespace LapTimer
 			string name = GTA.Game.GetUserInput("custom_race");
 
 			// export the race using RaceExporter
-			string fileName = RaceExporter.serializeToJson(RaceExporter.createExportableRace(name, markedSectorCheckpoints, dhprops, lapRace, markedSectorCheckpoints.Last().position), name);
+			string fileName = RaceExporter.serializeToJson(RaceExporter.createExportableRace(name, markedSectorCheckpoints, props, dhprops, lapRace, markedSectorCheckpoints.Last().position), name);
 
 			// inform user of the exported file
 			GTA.UI.Notification.Show("Lap Timer: exported race as " + fileName);
@@ -1651,6 +1761,7 @@ namespace LapTimer
 				lapRace = race.lapMode;
 				spawn = race.spawn;
 				raceName = race.name;
+				props = race.props;
 				dhprops = race.dhprops;
 				for (int i = 0; i < race.checkpoints.Length; i++)
 				{

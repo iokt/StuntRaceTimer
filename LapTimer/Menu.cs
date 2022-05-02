@@ -85,6 +85,10 @@ namespace LapTimer
 			mainMenu.AddItem(raceToggle);
 			mainMenu.AddItem(debugToggle);
 
+			// add a submenu for debug settings
+			UIMenu debugSettingsMenu = _menuPool.AddSubMenu(mainMenu, "Debug Mode Settings");
+			debugSettingsMenu.OnMenuOpen += loadDebugSettingsMenu;
+
 			// add control to export race
 			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");
 			exportRaceItem.Activated += (menu, sender) => race.exportRace();
@@ -98,7 +102,36 @@ namespace LapTimer
 			return mainMenu;
 		}
 		
-
+		private void loadDebugSettingsMenu(UIMenu submenu)
+        {
+			// clear the menu
+			submenu.Clear();
+			UIMenuItem item;
+			item = new UIMenuItem("Show Checkpoint Hitboxes");
+			item.Activated += (menu, sender) =>
+			{
+				race.debugShowCheckpointHitbox = !race.debugShowCheckpointHitbox;
+			};
+			submenu.AddItem(item);
+			item = new UIMenuItem("Show Global XYZ Axes");
+			item.Activated += (menu, sender) =>
+			{
+				race.debugShowXYZAxes = !race.debugShowXYZAxes;
+			};
+			submenu.AddItem(item);
+			item = new UIMenuItem("Show Player Position");
+			item.Activated += (menu, sender) =>
+			{
+				race.debugShowPlayerPosition = !race.debugShowPlayerPosition;
+			};
+			submenu.AddItem(item);
+			item = new UIMenuItem("Toggle Player Opacity");
+			item.Activated += (menu, sender) =>
+			{
+				race.debugPlayerIsOpaque = !race.debugPlayerIsOpaque;
+			};
+			submenu.AddItem(item);
+		}
 
 		private void loadLapTimeMenu(UIMenu sender)
 		{

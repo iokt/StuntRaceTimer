@@ -308,63 +308,97 @@ namespace LapTimer
 			debugMode = !debugMode;
 		}
 		public bool debugMode = false;
+		public bool debugShowCheckpointHitbox = true;
+		public bool debugShowXYZAxes = false;
+		public bool debugShowPlayerPosition = true;
+		private bool _debugPlayerIsOpaque = false;
+		public bool debugPlayerIsOpaque
+		{
+			get
+            {
+				return _debugPlayerIsOpaque;
+            }
+			set
+			{
+				Function.Call(Hash.RESET_ENTITY_ALPHA, Game.Player.Character.Handle);
+				Vehicle veh = Game.Player.Character.CurrentVehicle;
+				if (veh != null)
+					Function.Call(Hash.RESET_ENTITY_ALPHA, veh.Handle);
+				_debugPlayerIsOpaque = value;
+			}
+		}
+		public byte debugOpacityLevel = 50;
+		public const float debugSphereScale = 1.0056f; //make debug spheres look like their actual radius
 		public void drawDebug()
 		{
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
 			if (veh == null) return;
 
-			veh.Opacity = 50;
-			Game.Player.Character.Opacity = 50;
+			if (!debugPlayerIsOpaque)
+			{
+				veh.Opacity = debugOpacityLevel;
+				Game.Player.Character.Opacity = debugOpacityLevel;
+			}
 			Color cyan = Color.FromArgb(100, 0, 255, 255);
 			float markerheight = 10f;
 			float mr = .035f;
 			float zc = SectorCheckpoint.zClamp;
 			//Color.
 
-			float radius = activeCheckpoint.isAirCheckpoint ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
-			radius *= activeCheckpoint.chs;
-			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position, Vector3.Zero, Vector3.Zero, new Vector3(radius, radius, radius), cyan);
-			float zcr = 2f * (float)Math.Sqrt(radius * radius - zc * zc);
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr, zcr, 1f), Color.Red);
-
-			Vector3 dir = (veh.Position - activeCheckpoint.position).Normalized * Math.Min(radius, veh.Position.DistanceTo(activeCheckpoint.position));
-			if (dir.Z < zc && zc < 0f)
+			if (debugShowCheckpointHitbox)
 			{
-				dir.Z = zc;
-				//dir *= zc / dir.Z;
-			}
-			Vector3 limitpos = activeCheckpoint.position + dir;
-			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
-			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+				float radius = activeCheckpoint.isAirCheckpoint ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
+				radius *= activeCheckpoint.chs;
+				float dsr = debugSphereScale * radius;
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position, Vector3.Zero, Vector3.Zero, new Vector3(dsr, dsr, dsr), cyan);
+				float zcr = 2f * (float)Math.Sqrt(radius * radius - zc * zc);
+				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr, zcr, 1f), Color.Red);
 
-			if (activeCheckpoint.hasSecondaryCheckpoint)
-			{
-				float radius2 = activeCheckpoint.isAirCheckpoint2 ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
-				radius2 *= activeCheckpoint.chs2;
-				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position2, Vector3.Zero, Vector3.Zero, new Vector3(radius2, radius2, radius2), cyan);
-				float zcr2 = 2f * (float)Math.Sqrt(radius2 * radius2 - zc * zc);
-				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position2 + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr2, zcr2, 1f), Color.Red);
-
-				Vector3 dir2 = (veh.Position - activeCheckpoint.position2).Normalized * Math.Min(radius2, veh.Position.DistanceTo(activeCheckpoint.position2));
-				if (dir2.Z < zc && zc < 0f)
+				Vector3 dir = (veh.Position - activeCheckpoint.position).Normalized * Math.Min(radius, veh.Position.DistanceTo(activeCheckpoint.position));
+				if (dir.Z < zc && zc < 0f)
 				{
-					dir2.Z = zc;
+					dir.Z = zc;
 					//dir *= zc / dir.Z;
 				}
-				Vector3 limitpos2 = activeCheckpoint.position2 + dir2;
-				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
-				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+				Vector3 limitpos = activeCheckpoint.position + dir;
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+
+				if (activeCheckpoint.hasSecondaryCheckpoint)
+				{
+					float radius2 = activeCheckpoint.isAirCheckpoint2 ? SectorCheckpoint.checkpointAirRadius : SectorCheckpoint.checkpointRadius;
+					radius2 *= activeCheckpoint.chs2;
+					float dsr2 = debugSphereScale * radius2;
+					GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, activeCheckpoint.position2, Vector3.Zero, Vector3.Zero, new Vector3(dsr2, dsr2, dsr2), cyan);
+					float zcr2 = 2f * (float)Math.Sqrt(radius2 * radius2 - zc * zc);
+					GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, activeCheckpoint.position2 + Vector3.UnitZ * zc, Vector3.Zero, Vector3.Zero, new Vector3(zcr2, zcr2, 1f), Color.Red);
+
+					Vector3 dir2 = (veh.Position - activeCheckpoint.position2).Normalized * Math.Min(radius2, veh.Position.DistanceTo(activeCheckpoint.position2));
+					if (dir2.Z < zc && zc < 0f)
+					{
+						dir2.Z = zc;
+						//dir *= zc / dir.Z;
+					}
+					Vector3 limitpos2 = activeCheckpoint.position2 + dir2;
+					GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.HotPink);
+					GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, limitpos2, Vector3.Zero, Vector3.Zero, new Vector3(1f, 1f, 1f), Color.FromArgb(100, 255, 200, 255));
+				}
 			}
 
+			if (debugShowXYZAxes)
+			{
+				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero,
+					Vector3.Zero, new Vector3(mr, mr, markerheight), Color.Blue);
+				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero,
+					new Vector3(-90f, 0f, 0f), new Vector3(mr, mr, markerheight), Color.Green);
+				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitX * markerheight / 2f, Vector3.Zero,
+					new Vector3(0f, 90f, 0f), new Vector3(mr, mr, markerheight), Color.Red);
+			}
 
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero,
-				Vector3.Zero, new Vector3(mr, mr, markerheight), Color.Blue);
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero,
-				new Vector3(-90f, 0f, 0f), new Vector3(mr, mr, markerheight), Color.Green);
-			GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitX * markerheight / 2f, Vector3.Zero,
-				new Vector3(0f, 90f, 0f), new Vector3(mr, mr, markerheight), Color.Red);
-
-			GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, veh.Position, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.Purple);
+			if (debugShowPlayerPosition)
+			{
+				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, veh.Position, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.Purple);
+			}
 			//GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position, -veh.UpVector, Vector3.Zero, new Vector3(.1f, .1f, 10f), cyan);
 		}
 
@@ -558,6 +592,8 @@ namespace LapTimer
 
 		}
 		private bool disableCinCamToggle = false;
+		public bool tasSaveOnOverwrite = false;
+		public bool tasSaveOnStopRecording = true;
 		public void tasRecord()
 		{
 			if (!tasPlaybackMode)
@@ -591,7 +627,8 @@ namespace LapTimer
 			//if (tasPlaybackMode) return;
 			if (tasRecordMode)
 			{
-				exportReplay();
+				if (tasSaveOnStopRecording)
+					exportReplay(append: "_autosave");
 			}
 			else if (!tasPlaybackMode)
 			{
@@ -894,7 +931,8 @@ namespace LapTimer
 			{
 				if (tasRecordMode)
 				{
-					exportReplay();
+					if (tasSaveOnOverwrite)
+						exportReplay(append: "_savestate");
 				}
 				tasPlaybackExitNextFrame = true;
 
@@ -948,7 +986,7 @@ namespace LapTimer
 		}
 
 		//https://en.wikipedia.org/wiki/Jenkins_hash_function#one_at_a_time
-		public int one_at_a_time(string key)
+		public static int one_at_a_time(string key)
 		{
 			UInt32 hash = 0;
 			foreach (char c in key)
@@ -1833,7 +1871,7 @@ namespace LapTimer
 			GTA.UI.Screen.ShowSubtitle("Replay Loaded");
 		}
 
-		public void exportReplay(bool askname = false)
+		public void exportReplay(bool askname = false, string append = "")
         {
 			if (tasRecEntries == null) return;
 
@@ -1848,7 +1886,7 @@ namespace LapTimer
 				entries = tasRecEntries.ToArray()
 			};
 
-			string name = raceName + "_" + raceHash.ToString("x8") + "_" + ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds().ToString();
+			string name = raceName + "_" + raceHash.ToString("x8") + "_" + ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds().ToString() + append;
 
 			if (askname)
 			{

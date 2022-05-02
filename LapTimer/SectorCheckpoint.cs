@@ -159,6 +159,14 @@ namespace LapTimer
 			// create blip
 			newMarker.blip = GTA.World.CreateBlip(position);
 			newMarker.blip.NumberLabel = number;
+			if (type == MarkerType.raceFinish)
+				newMarker.blip.Sprite = BlipSprite.RaceFinish;
+
+			if (_target != Vector3.Zero)
+			{
+				newMarker.nextBlip = GTA.World.CreateBlip(_target);
+				newMarker.nextBlip.Scale = .5f;
+			}
 			//-----------------------
 			//SECONDARY
 			if (hasSecondaryCheckpoint) {
@@ -168,8 +176,8 @@ namespace LapTimer
 
 				Vector3 positionAir2 = new Vector3(position2[0], position2[1], position2[2]+radius2/2.0f);
 
-				target2 = target2 ?? _target;
-				if (target2.Equals(Vector3.Zero)) target2 = _target;
+				Vector3 _target2 = target2 ?? _target;
+				if (_target2.Equals(Vector3.Zero)) _target2 = _target;
 				// place a placement mode checkpoint
 				if (type == MarkerType.placement)
 				{
@@ -185,12 +193,12 @@ namespace LapTimer
 					if (isAirCheckpoint2)
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.RingDoubleArrow,
-							positionAir2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
+							positionAir2 + checkpointOffset, checkpointOffset + _target2, radius2, defaultColor2);
 					}
 					else
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.CylinderDoubleArrow,
-							position2 + checkpointOffset, checkpointOffset + target2 ?? new Vector3(0, 0, 0), radius2, defaultColor2);
+							position2 + checkpointOffset, checkpointOffset + _target2, radius2, defaultColor2);
 					}
 				}
 
@@ -213,9 +221,17 @@ namespace LapTimer
 				newMarker.blip2 = GTA.World.CreateBlip(position2);
 				newMarker.blip2.NumberLabel = number;
 				newMarker.blip2.Color = BlipColor.Orange;
+				if (type == MarkerType.raceFinish)
+					newMarker.blip2.Sprite = BlipSprite.RaceFinish;
+
+				if (_target2 != _target)
+				{
+					newMarker.nextBlip2 = GTA.World.CreateBlip(_target2);
+					newMarker.nextBlip2.Scale = .5f;
+					newMarker.nextBlip2.Color = BlipColor.Orange;
+				}
 			}
 			//-----------------------------------
-
 
 			// flag the marker as active and return this instance of Marker
 			newMarker.active = true;
@@ -261,6 +277,10 @@ namespace LapTimer
 					marker.checkpoint2?.Delete();
 					marker.blip2.Delete();
 				}
+				if (marker.nextBlip != null)
+					marker.nextBlip.Delete();
+				if (marker.nextBlip2 != null)
+					marker.nextBlip2.Delete();
 			}
 			marker.active = false;
 		}
@@ -324,6 +344,8 @@ namespace LapTimer
 		public Checkpoint checkpoint;
 		public Blip blip2;
 		public Checkpoint checkpoint2;
+		public Blip nextBlip;
+		public Blip nextBlip2;
 		public bool active;
 	}
 

@@ -327,7 +327,8 @@ namespace LapTimer
 				_debugPlayerIsOpaque = value;
 			}
 		}
-		public byte debugOpacityLevel = 50;
+		public byte debugVehicleOpacityLevel = 50;
+		public byte debugPlayerOpacityLevel = 50;
 		public const float debugSphereScale = 1.0056f; //make debug spheres look like their actual radius
 		public void drawDebug()
 		{
@@ -336,8 +337,8 @@ namespace LapTimer
 
 			if (!debugPlayerIsOpaque)
 			{
-				veh.Opacity = debugOpacityLevel;
-				Game.Player.Character.Opacity = debugOpacityLevel;
+				veh.Opacity = debugVehicleOpacityLevel;
+				Game.Player.Character.Opacity = debugPlayerOpacityLevel;
 			}
 			Color cyan = Color.FromArgb(100, 0, 255, 255);
 			float markerheight = 10f;
@@ -1132,9 +1133,11 @@ namespace LapTimer
 			}
 			lastPedRemoval = Game.GameTime;
 		}
+		public bool useDefaultCamera = false;
 		private bool clampInMidair = false;
 		public void betterCamera()
         {
+			if (useDefaultCamera) return;
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
 			if (veh == null) return;
 			//Function.Call(Hash._ANIMATE_GAMEPLAY_CAM_ZOOM, 1f, 1000f);

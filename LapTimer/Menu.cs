@@ -89,6 +89,10 @@ namespace LapTimer
 			UIMenu debugSettingsMenu = _menuPool.AddSubMenu(mainMenu, "Debug Mode Settings");
 			debugSettingsMenu.OnMenuOpen += loadDebugSettingsMenu;
 
+			// add a submenu for camera settings
+			UIMenu cameraSettingsMenu = _menuPool.AddSubMenu(mainMenu, "Camera Settings");
+			cameraSettingsMenu.OnMenuOpen += loadCameraSettingsMenu;
+
 			// add control to export race
 			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");
 			exportRaceItem.Activated += (menu, sender) => race.exportRace();
@@ -106,31 +110,73 @@ namespace LapTimer
         {
 			// clear the menu
 			submenu.Clear();
-			UIMenuItem item;
-			item = new UIMenuItem("Show Checkpoint Hitboxes");
-			item.Activated += (menu, sender) =>
 			{
-				race.debugShowCheckpointHitbox = !race.debugShowCheckpointHitbox;
-			};
-			submenu.AddItem(item);
-			item = new UIMenuItem("Show Global XYZ Axes");
-			item.Activated += (menu, sender) =>
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Checkpoint Hitboxes", race.debugShowCheckpointHitbox);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowCheckpointHitbox = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
 			{
-				race.debugShowXYZAxes = !race.debugShowXYZAxes;
-			};
-			submenu.AddItem(item);
-			item = new UIMenuItem("Show Player Position");
-			item.Activated += (menu, sender) =>
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Global XYZ Axes", race.debugShowXYZAxes);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowXYZAxes = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
 			{
-				race.debugShowPlayerPosition = !race.debugShowPlayerPosition;
-			};
-			submenu.AddItem(item);
-			item = new UIMenuItem("Toggle Player Opacity");
-			item.Activated += (menu, sender) =>
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Player Position", race.debugShowPlayerPosition);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowPlayerPosition = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
 			{
-				race.debugPlayerIsOpaque = !race.debugPlayerIsOpaque;
-			};
-			submenu.AddItem(item);
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Toggle Player Opacity", race.debugPlayerIsOpaque);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugPlayerIsOpaque = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
+			{
+				UIMenuSliderItem item = new UIMenuSliderItem("Player Opacity");
+				item.Value = race.debugPlayerOpacityLevel;
+				item.Maximum = 255;
+				item.OnSliderChanged += (menu, sender) =>
+				{
+					race.debugPlayerOpacityLevel = (byte)item.Value;
+				};
+				submenu.AddItem(item);
+            }
+			{
+				UIMenuSliderItem item = new UIMenuSliderItem("Vehicle Opacity");
+				item.Value = race.debugVehicleOpacityLevel;
+				item.Maximum = 255;
+				item.OnSliderChanged += (menu, sender) =>
+				{
+					race.debugVehicleOpacityLevel = (byte)item.Value;
+				};
+				submenu.AddItem(item);
+			}
+		}
+
+		private void loadCameraSettingsMenu(UIMenu submenu)
+		{
+			// clear the menu
+			submenu.Clear();
+			{
+				UIMenuCheckboxItem item;
+				item = new UIMenuCheckboxItem("Use Default Camera", race.useDefaultCamera);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.useDefaultCamera = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
 		}
 
 		private void loadLapTimeMenu(UIMenu sender)

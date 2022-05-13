@@ -1,4 +1,5 @@
 ﻿extern alias SHVDN2;
+using LemonUI;
 //extern alias CFX;
 //using static CitizenFX.Core.Native.API;
 
@@ -18,6 +19,7 @@ using GTA.UI;
 
 
 using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace LapTimer
 {
@@ -310,7 +312,10 @@ namespace LapTimer
 		public bool debugMode = false;
 		public bool debugShowCheckpointHitbox = true;
 		public bool debugShowXYZAxes = false;
+		public bool debugShowPlayerXYZAxes = false;
 		public bool debugShowPlayerPosition = true;
+		public bool debugShowMidairAcceleration = false;
+		public bool debugShowInfo = true;
 		private bool _debugPlayerIsOpaque = false;
 		public bool debugPlayerIsOpaque
 		{
@@ -388,12 +393,23 @@ namespace LapTimer
 
 			if (debugShowXYZAxes)
 			{
+				/**
 				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitZ * markerheight / 2f, Vector3.Zero,
 					Vector3.Zero, new Vector3(mr, mr, markerheight), Color.Blue);
 				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitY * markerheight / 2f, Vector3.Zero,
 					new Vector3(-90f, 0f, 0f), new Vector3(mr, mr, markerheight), Color.Green);
 				GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position - Vector3.UnitX * markerheight / 2f, Vector3.Zero,
 					new Vector3(0f, 90f, 0f), new Vector3(mr, mr, markerheight), Color.Red);
+				**/
+				GTA.World.DrawLine(veh.Position, veh.Position + Vector3.UnitX, Color.Red);
+				GTA.World.DrawLine(veh.Position, veh.Position + Vector3.UnitY, Color.Green);
+				GTA.World.DrawLine(veh.Position, veh.Position + Vector3.UnitZ, Color.Blue);
+			}
+			if (debugShowPlayerXYZAxes)
+            {
+				GTA.World.DrawLine(veh.Position, veh.Position + veh.RightVector, Color.PaleVioletRed);
+				GTA.World.DrawLine(veh.Position, veh.Position + veh.ForwardVector, Color.LightGreen);
+				GTA.World.DrawLine(veh.Position, veh.Position + veh.UpVector, Color.LightBlue);
 			}
 
 			if (debugShowPlayerPosition)
@@ -401,7 +417,81 @@ namespace LapTimer
 				GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, veh.Position, Vector3.Zero, Vector3.Zero, new Vector3(mr, mr, mr), Color.Purple);
 			}
 			//GTA.World.DrawMarker(GTA.MarkerType.VerticalCylinder, veh.Position, -veh.UpVector, Vector3.Zero, new Vector3(.1f, .1f, 10f), cyan);
+
+			/**
+			float costheta = Vector3.Dot(veh.UpVector, Vector3.WorldUp)/veh.UpVector.Length();
+			float theta = (float)Math.Acos(-veh.UpVector.Z);
+			float mag = 1f;
+			float horizm = (float)Math.Sin(2 * theta) * mag;
+			float vertm = -(float)Math.Cos(2 * theta) * mag;
+			float heading = veh.Heading;
+			
+
+			Vector3 rotationPlaneNormal = Vector3.Cross(Vector3.WorldUp, veh.UpVector).Normalized;
+
+			float angle = veh.Quaternion.Angle;
+			Vector3 axis = veh.Quaternion.Axis;
+			Vector3 rv, fv, uv;
+			**/
+			if (debugShowMidairAcceleration)
+			{
+				Vector3 uv;
+				if (veh.IsMotorcycle)
+				{
+					uv = -veh.UpVector;
+				}
+				else
+				{
+					//float costheta = Vector3.Dot(veh.UpVector, Vector3.WorldUp)/(veh.UpVector.Length() * Vector3.WorldUp.Length());
+					float theta = (float)Math.Acos(-veh.UpVector.Z); //angle between vehicle plane and Z=0 plane
+					Vector3 rotationPlaneNormal = Vector3.Cross(Vector3.WorldUp, veh.UpVector); //Normal of plane formed
+					Quaternion.GetDirectionVectors(new Quaternion(rotationPlaneNormal, theta * 2), out _, out _, out uv);
+					uv.Z = -uv.Z;
+				}
+				GTA.World.DrawLine(veh.Position, veh.Position + uv, Color.Orange);
+			}
+			//GTA.World.DrawMarker(GTA.MarkerType.DebugSphere, veh.Position + uv * 3, Vector3.Zero, Vector3.Zero, new Vector3(1, 1, 1), Color.Purple);
+
+			//float sintheta = (float)Math.Sqrt(1 - costheta * costheta);
+
+			if (debugShowInfo)
+			{
+				string[] debuginfo = debugInfo();
+				//Point.
+				//SHVDN2.GTA.UIText.
+				Regex rgx = new Regex("[^a-zA-Z0-9 ~]");
+				//string t = rgx.Replace(string.Join("~n~", debuginfo).Replace(".", " ").Replace("-", "m").Replace("∞", "Infinity"), " ");
+				//t = String.Format("{0}", float.NegativeInfinity);
+				SizeF res = NativeUI.UIMenu.GetScreenResolutionMaintainRatio();
+				Point safe = NativeUI.UIMenu.GetSafezoneBounds();
+				float size = .25f;
+				float x = res.Width - safe.X - 400;
+				for (int i = 0; i < debuginfo.Length; i++)
+				{
+					string t = rgx.Replace(debuginfo[i].Replace(" ", "~w~ ").Replace(":", "~g~ ").Replace(".", " ").Replace("E-", "EM").Replace("-", "~o~").Replace("∞", "Infinity"), " ");
+
+					float y = safe.Y + 100 + ((60 * size * i));
+					LemonUI.Elements.ScaledText text = new LemonUI.Elements.ScaledText(new PointF(x, y), t, size, GTA.UI.Font.Monospace);
+					text.Alignment = Alignment.Left;
+					text.Outline = true;
+					text.Draw();
+				}
+
+				//NativeUI.UIResText.Draw(string.Join("~n~", debuginfo.Take(2)), 960, 540, SHVDN2.GTA.Font.ChaletLondon, 1f, Color.Red,  NativeUI.UIResText.Alignment.Centered, false, true, 0);
+				//text.Draw();
+				//GTA.UI.Screen.ShowHelpText(, beep: false);
+			}
 		}
+
+		public void drawVector(Vector3 from, Vector3 to, float width = .1f)
+        {
+			//GTA.World.DrawLine
+        }
+
+		public void drawVector(Vector3 from, Vector3 dir, float length, float width = .1f)
+        {
+
+        }
 
 		/// <summary>
 		/// Delete the last <c>SectorCheckpoint</c>. First delete its <c>Marker</c>, then remove the checkpoint from <c>markedSectorCheckpoints</c>.
@@ -468,6 +558,7 @@ namespace LapTimer
 			current.quat = veh.Quaternion;
 			current.vel = veh.Velocity;
 			current.rvel = veh.WorldRotationVelocity;
+			current.wheelspeed = veh.WheelSpeed;
 
 			//Driving and Turning
 			current.brakepower = veh.BrakePower;
@@ -508,12 +599,17 @@ namespace LapTimer
 			}
 			current.wheels = wheelprops.ToArray();
 
-			/**IntPtr addr = veh.Wheels.ToList()[0].MemoryAddress;
-			IntPtr addr2 = veh.Wheels.ToList()[1].MemoryAddress;
-			IntPtr addr3 = veh.Wheels.ToList()[2].MemoryAddress;
-			IntPtr addr4 = veh.Wheels.ToList()[3].MemoryAddress;
-			string h = (addr.ToString() + " " + addr2.ToString() + " " + addr3.ToString() + " " + addr4.ToString());
-			GTA.UI.Screen.ShowSubtitle(h);**/
+			//IntPtr addr1 = veh.Wheels.ToList()[0].MemoryAddress;
+			//IntPtr addr2 = veh.Wheels.ToList()[1].MemoryAddress;
+			//IntPtr addr3 = veh.Wheels.ToList()[2].MemoryAddress;
+			//IntPtr addr4 = veh.Wheels.ToList()[3].MemoryAddress;
+			//string h = (addr1.ToString() + " " + addr2.ToString());// + " " + addr3.ToString() + " " + addr4.ToString());
+			//GTA.UI.Screen.ShowSubtitle(h);
+			//if (tasRecEntries.Count > 0)
+			//{
+			//	float diff = (tasRecEntries.Last().vel - veh.Velocity).Length();
+			//	GTA.UI.Screen.ShowSubtitle((diff / Game.LastFrameTime).ToString());
+			//}
 
 			/**
 			List<wheelProperties> wheels = new List<wheelProperties>();
@@ -652,25 +748,29 @@ namespace LapTimer
 			102, 104, 110, 111, 112, 113, 115, 116, 117, 119, 120, 128, 130 };
 		private static HashSet<int> bikeMemIndexSet = new HashSet<int>(bikeMemIndexes);
 		private static HashSet<int> carMemIndexSet = new HashSet<int>(carMemIndexes);
-		private void tasPlayCurrent(tasRecEntry current)
+		private void tasPlayCurrent(tasRecEntry current, Vehicle veh = null)
 		{
-			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			if (veh == null)
+				veh = Game.Player.Character.CurrentVehicle;
 			if (veh == null) return;
 			int syncPlaybackFrames = 1;
 			if ((syncPlaybackFrames > 0 && (tasPlaybackIndex - tasPlaybackStartIndex) % syncPlaybackFrames == 0) || (tasPlaybackIndex - tasPlaybackStartIndex) < 60)
 			{
-				//Timing
-				if (current.laptime >= 0)
+				if (veh.Handle == Game.Player.Character.CurrentVehicle.Handle)
 				{
-					lapTime = current.laptime;
-				}
-				if (current.totaltime >= 0)
-				{
-					totalTime = current.totaltime;
-				}
-				if (current.activecheckpoint >= 0 && current.activecheckpoint != activeSector)
-				{
-					activateRaceCheckpoint(current.activecheckpoint);
+					//Timing
+					if (current.laptime >= 0)
+					{
+						lapTime = current.laptime;
+					}
+					if (current.totaltime >= 0)
+					{
+						totalTime = current.totaltime;
+					}
+					if (current.activecheckpoint >= 0 && current.activecheckpoint != activeSector)
+					{
+						activateRaceCheckpoint(current.activecheckpoint);
+					}
 				}
 
 				//Position, Rotation, Velocity
@@ -742,7 +842,7 @@ namespace LapTimer
 				**/
 			}
 
-			if (true)
+			if (veh.Handle == Game.Player.Character.CurrentVehicle.Handle)
 			{
 				//Controls
 				vehControls controls = current.controls;
@@ -784,8 +884,11 @@ namespace LapTimer
 		private bool tasPlaybackPaused = false;
 		private bool tasPlaybackPauseOnNextFrame = false;
 		//private int tasPlaybackPausedAt = 0;
-		public void tasPlayback()
+		public bool tasPlaybackGhostMode = false;
+		private Vehicle tasPlaybackGhostVehicle = null;
+		public void tasPlayback(bool ghostMode = false)
 		{
+			ghostMode = tasPlaybackGhostMode;
 			if (!tasPlaybackExitNextFrame && tasRecEntries != null && tasPlaybackIndex < tasRecEntries.Count)
 			{
 				if (tasPlaybackStartTime <= 0) tasPlaybackStartTime = Game.GameTime;
@@ -830,7 +933,20 @@ namespace LapTimer
 				}
 				if (!waitFrame)
 				{
-					tasPlayCurrent(current);
+					if (!ghostMode)
+						tasPlayCurrent(current);
+					else
+					{
+						if (tasPlaybackGhostVehicle == null || !tasPlaybackGhostVehicle.Exists() || tasPlaybackGhostVehicle.Model.Hash != current.model)
+                        {
+							tasPlaybackGhostVehicle = World.CreateVehicle(new Model(current.model), current.pos);
+							tasPlaybackGhostVehicle.IsInvincible = true;
+							tasPlaybackGhostVehicle.IsCollisionEnabled = false;
+							tasPlaybackGhostVehicle.Opacity = 200;
+						}
+
+						tasPlayCurrent(current, tasPlaybackGhostVehicle);
+					}
 					if (!tasPlaybackPaused)
 						tasPlaybackIndex++;
 				}
@@ -1170,7 +1286,7 @@ namespace LapTimer
 		public void preventVehicleExit()
         {
 			Game.DisableControlThisFrame(Control.VehicleExit);
-			if (Game.IsControlPressed(Control.VehicleExit)) respawn();
+			if (Game.IsControlJustPressed(Control.VehicleExit)) respawn();
         }
 		public void preventCharSwitch()
 		{
@@ -1224,17 +1340,24 @@ namespace LapTimer
 			return veh != null && (veh.IsAutomobile || veh.IsMotorcycle) && (veh.IsOnAllWheels || (veh.IsUpsideDown && !veh.IsMotorcycle));
 
 		}
-
+		private int stopCarAfter = int.MaxValue;
+		public void stopCarWait()
+        {
+			if (stopCarAfter <= Game.GameTime)
+			{
+				Vehicle veh = Game.Player.Character.CurrentVehicle;
+				veh.Velocity = Vector3.Zero;
+				veh.RotationVelocity = Vector3.Zero;
+				stopCarAfter = int.MaxValue;
+			}
+		}
 		public void stopCar(int delay)
 		{
 			
 			Vehicle veh = Game.Player.Character.CurrentVehicle;
 			if (canStopCar())
             {
-				if (delay > 0)
-					Script.Wait(delay); //TODO: should fix this
-				veh.Velocity = Vector3.Zero;
-				veh.RotationVelocity = Vector3.Zero;
+				stopCarAfter = Game.GameTime + delay;
 			}
 		}
 
@@ -1315,12 +1438,148 @@ namespace LapTimer
                 }
 
 				fixCar();
-				
+
+				/**
+				veh.Velocity = veh.ForwardVector * 10000000f;
+				veh.CurrentGear = veh.HighGear;
+				veh.CurrentRPM = 1f;
+				veh.Clutch = 1f;
+				veh.NextGear = veh.HighGear;
+				veh.Throttle = 1f;
+				veh.ThrottlePower = 1f;
+				veh.Turbo = 1f;
+				**/
+
 				//veh.Velocity = vel;
 				//veh.RotationVelocity = rvel;
 				//veh.Quaternion = quat;
 			}
         }
+
+		private Vector3 lastVelocity = Vector3.Zero;
+		private int lastGameTime = 0;
+		public string[] debugInfo(Vehicle veh = null)
+        {
+			if (veh == null)
+				veh = Game.Player.Character.CurrentVehicle;
+			
+			List<string> info = new List<string>();
+
+			info.Add(String.Format("model      {0:~g~;~o~}{0}", veh.Model.Hash));
+
+			//Timing
+			info.Add(String.Format("frametime  {0}", Game.LastFrameTime));
+			int gt = Game.GameTime;
+			info.Add(String.Format("gametime   {0}", gt));
+			//info.Add(String.Format("offset\t{0}", offset));
+			info.Add(String.Format("laptime    {0}", lapTime));
+			info.Add(String.Format("totaltime  {0}", totalTime));
+			info.Add(String.Format("checkpoint {0}", activeSector));
+
+			if (veh == null)
+				return info.ToArray();
+
+			//Position, Rotation, Velocity
+			Vector3 vel = veh.Velocity;
+			info.Add(String.Format("pos        {0}", veh.Position));
+			info.Add(String.Format("quat       {0}", veh.Quaternion));
+			info.Add(String.Format("rot        {0}", veh.Rotation));
+			info.Add(String.Format("heading    {0}", veh.Heading));
+			info.Add(String.Format("vel        {0}", vel));
+			info.Add(String.Format("rotvel     {0}", veh.WorldRotationVelocity));
+			info.Add(String.Format("velvert    {0:~g~;~o~}{0}", vel.Z));
+			info.Add(String.Format("speedhoriz {0}", vel.DistanceTo2D(Vector3.Zero)));
+			info.Add(String.Format("speed      {0}", veh.Speed));
+			info.Add(String.Format("wheelspeed {0}", veh.WheelSpeed));
+			Vector3 accel;
+			int cgt, lgt;
+			if (tasPlaybackMode && tasRecEntries != null && tasPlaybackIndex > 0)
+			{
+				cgt = tasRecEntries[tasPlaybackIndex].gametime;
+				lgt = tasRecEntries[tasPlaybackIndex - 1].gametime;
+				lastVelocity = tasRecEntries[tasPlaybackIndex - 1].vel;
+				vel = tasRecEntries[tasPlaybackIndex].vel;
+			}
+			else
+			{
+				cgt = gt;
+				lgt = lastGameTime;
+			}
+			float timePassed = (Math.Max(cgt - lgt, 1) / 1000f);
+			accel = (vel - lastVelocity) / timePassed;
+			info.Add(String.Format("accel      {0}", accel));
+			info.Add(String.Format("accelhoriz {0}", accel.DistanceTo2D(Vector3.Zero)));
+			info.Add(String.Format("cspdhoriz  {0:~g~;~o~}{0}", (vel.DistanceTo2D(Vector3.Zero) - lastVelocity.DistanceTo2D(Vector3.Zero)) / timePassed));
+			info.Add(String.Format("accelvert  {0:~g~;~o~}{0}", accel.Z));
+			info.Add(String.Format("cspdtotal  {0:~g~;~o~}{0}", (vel.Length() - lastVelocity.Length()) / timePassed));
+			info.Add(String.Format("acceltotal {0}", accel.Length()));
+			lastVelocity = vel;
+			lastGameTime = gt;
+
+			//Driving and Turning
+			
+			info.Add(String.Format("clutch     {0}", veh.Clutch));
+			info.Add(String.Format("rpm        {0}", veh.CurrentRPM));
+			info.Add(String.Format("gear       {0}", veh.CurrentGear));
+			info.Add(String.Format("nextgear   {0}", veh.NextGear));
+			info.Add(String.Format("highgear   {0}", veh.HighGear));
+			info.Add(String.Format("brakepower {0}", veh.BrakePower));
+			info.Add(String.Format("burnout    {0}", veh.IsInBurnout ? "~g~yes" : "~o~no"));
+			info.Add(String.Format("onallwhls  {0}", veh.IsOnAllWheels ? "~g~yes" : "~o~no"));
+			info.Add(String.Format("inmidair   {0}", veh.IsInAir ? "~g~yes" : "~o~no"));
+			info.Add(String.Format("upright    {0}", veh.IsUpright ? "~g~yes" : "~o~no"));
+			info.Add(String.Format("upsidedown {0}", veh.IsUpsideDown ? "~g~yes" : "~o~no"));
+			info.Add(String.Format("collided   {0}", veh.HasCollided ? "~g~yes" : "~o~no"));
+			//info.Add(String.Format("colliding  {0}", veh.MaterialCollidingWith != MaterialHash.None ? "~g~yes" : "~o~no"));
+			
+			//veh.IsEngineRunning\t{0}", true));
+
+			info.Add(String.Format("steerangle {0:~g~;~o~}{0}", veh.SteeringAngle));
+			info.Add(String.Format("steerscale {0:~g~;~o~}{0}", veh.SteeringScale));
+			//veh.SubmersionLevel
+			info.Add(String.Format("throttle   {0:~g~;~o~}{0}", veh.Throttle));
+			info.Add(String.Format("throtpower {0:~g~;~o~}{0}", veh.ThrottlePower));
+			info.Add(String.Format("turbo      {0:~g~;~o~}{0}", veh.Turbo));
+
+			
+
+			Vector3 disttocp = activeCheckpoint.position - veh.Position;
+			Vector3 disttocp2 = Vector3.Zero;
+			float speedToCheckpoint = Vector3.Dot(vel, disttocp.Normalized);
+			float speedToCheckpoint2 = 0f;
+			if (activeCheckpoint.hasSecondaryCheckpoint)
+			{
+				disttocp2 = activeCheckpoint.position2 - veh.Position;
+				speedToCheckpoint2 = Vector3.Dot(vel, disttocp2.Normalized);
+			}
+			info.Add(String.Format("disttocp   {0}", disttocp.Length()));
+			info.Add(String.Format("speedtocp  {0:~g~;~o~}{0}", speedToCheckpoint));
+			info.Add(String.Format("disttocp2  {0}", disttocp2.Length()));
+			info.Add(String.Format("speedtocp2 {0:~g~;~o~}{0}", speedToCheckpoint2));
+
+
+			if (veh.IsMotorcycle)
+            {
+				VehicleWheel[] wheels = veh.Wheels.ToArray();
+				IntPtr frontWheelAddress = wheels[0].MemoryAddress;
+				IntPtr backWheelAddress = wheels[1].MemoryAddress;
+				if (frontWheelAddress != IntPtr.Zero && backWheelAddress != IntPtr.Zero)
+				{
+					bool glide1;
+					bool glide2;
+					unsafe
+					{
+						glide1 = *((byte*)wheels[0].MemoryAddress + 522) == 182;
+						glide2 = *((byte*)wheels[1].MemoryAddress + 522) == 182;
+					}
+					info.Add(String.Format("frontglide {0}", glide2 ? "~g~yes" : "~o~no"));
+					info.Add(String.Format("backglide  {0}", glide1 ? "~g~yes" : "~o~no"));
+				}
+
+			}
+
+			return info.ToArray();
+		}
 
 		public void warpToCheckpoint(int idx)
         {
@@ -1776,7 +2035,7 @@ namespace LapTimer
 			GTA.UI.Notification.Show("Lap Timer: exported race as " + fileName);
 		}
 
-
+		public bool enterRaceModeOnLoad = false;
 
 		/// <summary>
 		/// Import a race from a file on disk. The currently placed checkpoints will be overwritten.
@@ -1828,6 +2087,8 @@ namespace LapTimer
 				for (int i = 0; i < timingSheet.timingData.Length; i++)
 					markedSectorCheckpoints[i].setTimingDataFromSimplified(timingSheet.timingData[i]);
 				GTA.UI.Notification.Show("Lap Timer: successfully imported personal timing sheet for the imported race!");
+				if (enterRaceModeOnLoad)
+					toggleRaceMode();
 			}
 			catch { }
 		}
@@ -1876,7 +2137,11 @@ namespace LapTimer
 
 		public void exportReplay(bool askname = false, string append = "")
         {
-			if (tasRecEntries == null) return;
+			if (tasRecEntries == null)
+			{
+				GTA.UI.Notification.Show("~r~Lap Timer: no replay to export.");
+				return;
+			}
 
 			// compute the hash code of this race
 			int raceHash = GetHashCode();

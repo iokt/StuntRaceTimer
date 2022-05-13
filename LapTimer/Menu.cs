@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 using GTA;
 using NativeUI;
 
@@ -70,6 +70,10 @@ namespace LapTimer
 			replayImportMenu.OnMenuOpen += buildReplayImportMenu;
 			buildReplayImportMenu(replayImportMenu);
 
+			// add a submenu for settings
+			UIMenu settingsMenu = _menuPool.AddSubMenu(mainMenu, "Settings Menu");
+			settingsMenu.OnMenuOpen += loadSettingsMenu;
+
 			// add a submenu for Timing Sheet
 			UIMenu lapTimeMenu = _menuPool.AddSubMenu(mainMenu, "Lap Times", "Display lap times for the current race");
 			lapTimeMenu.OnMenuOpen += loadLapTimeMenu;
@@ -77,14 +81,19 @@ namespace LapTimer
 			// add controls to enter placement, race, debug modes
 			UIMenuItem placementToggle = new UIMenuItem("Toggle Placement Mode");
 			UIMenuItem raceToggle = new UIMenuItem("Toggle Race Mode");
-			UIMenuItem debugToggle = new UIMenuItem("Toggle Debug Mode");
-			placementToggle.Activated += (menu, sender) => race.togglePlacementMode();
-			raceToggle.Activated += (menu, sender) => race.toggleRaceMode();
-			debugToggle.Activated += (menu, sender) => race.toggleDebugMode();
+			placementToggle.Activated += (menu, sender) =>
+			{
+				race.togglePlacementMode();
+			};
+			raceToggle.Activated += (menu, sender) => {
+				race.toggleRaceMode();
+			};
 			mainMenu.AddItem(placementToggle);
 			mainMenu.AddItem(raceToggle);
-			mainMenu.AddItem(debugToggle);
 
+			
+
+			/**
 			// add a submenu for debug settings
 			UIMenu debugSettingsMenu = _menuPool.AddSubMenu(mainMenu, "Debug Mode Settings");
 			debugSettingsMenu.OnMenuOpen += loadDebugSettingsMenu;
@@ -92,6 +101,7 @@ namespace LapTimer
 			// add a submenu for camera settings
 			UIMenu cameraSettingsMenu = _menuPool.AddSubMenu(mainMenu, "Camera Settings");
 			cameraSettingsMenu.OnMenuOpen += loadCameraSettingsMenu;
+			**/
 
 			// add control to export race
 			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");
@@ -106,6 +116,36 @@ namespace LapTimer
 			return mainMenu;
 		}
 		
+		private void loadSettingsMenu(UIMenu submenu)
+        {
+			submenu.Clear();
+
+			UIMenuCheckboxItem debugToggle = new UIMenuCheckboxItem("Toggle Debug Mode", race.debugMode);
+			UIMenuCheckboxItem ghostToggle = new UIMenuCheckboxItem("Toggle Ghost Mode", race.tasPlaybackGhostMode);
+			debugToggle.CheckboxEvent += (menu, sender) => {
+				race.toggleDebugMode();
+				debugToggle.Checked = race.debugMode;
+			};
+			ghostToggle.CheckboxEvent += (menu, sender) => race.tasPlaybackGhostMode = ghostToggle.Checked;
+			submenu.AddItem(debugToggle);
+			submenu.AddItem(ghostToggle);
+
+			// add a submenu for debug settings
+			UIMenuItem debugSettingsMenu = new UIMenuItem("Debug Mode Settings >>>");
+			debugSettingsMenu.Activated += (menu, sender) => { 
+				loadDebugSettingsMenu(submenu); 
+			};
+			submenu.AddItem(debugSettingsMenu);
+
+			// add a submenu for camera settings
+			UIMenuItem cameraSettingsMenu = new UIMenuItem("Camera Settings >>>");
+			cameraSettingsMenu.Activated += (menu, sender) => {
+				loadCameraSettingsMenu(submenu);
+			};
+			submenu.AddItem(cameraSettingsMenu);
+
+			submenu.RefreshIndex();
+		}
 		private void loadDebugSettingsMenu(UIMenu submenu)
         {
 			// clear the menu
@@ -124,6 +164,16 @@ namespace LapTimer
 				{
 					race.debugShowXYZAxes = item.Checked;
 				};
+				item.Description = "Red: +X (East), Green: +Y (North), Blue: +Z (Up)";
+				submenu.AddItem(item);
+			}
+			{
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Player XYZ Axes", race.debugShowPlayerXYZAxes);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowPlayerXYZAxes = item.Checked;
+				};
+				item.Description = "LightRed: Right, LightGreen: Forward, LightBlue: Up";
 				submenu.AddItem(item);
 			}
 			{
@@ -132,6 +182,24 @@ namespace LapTimer
 				{
 					race.debugShowPlayerPosition = item.Checked;
 				};
+				submenu.AddItem(item);
+			}
+			{
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Midair Acceleration", race.debugShowMidairAcceleration);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowMidairAcceleration = item.Checked;
+				};
+				item.Description = "Estimated direction of bonus midair acceleration, not current midair acceleration.";
+				submenu.AddItem(item);
+			}
+			{
+				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Debug Info", race.debugShowInfo);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.debugShowInfo = item.Checked;
+				};
+				item.Description = "Orange numbers are negative.";
 				submenu.AddItem(item);
 			}
 			{
@@ -149,6 +217,10 @@ namespace LapTimer
 				item.OnSliderChanged += (menu, sender) =>
 				{
 					race.debugPlayerOpacityLevel = (byte)item.Value;
+					item.Description = item.Value.ToString();
+					int idx = submenu.CurrentSelection;
+					submenu.RefreshIndex();
+					submenu.CurrentSelection = idx;
 				};
 				submenu.AddItem(item);
             }
@@ -159,9 +231,14 @@ namespace LapTimer
 				item.OnSliderChanged += (menu, sender) =>
 				{
 					race.debugVehicleOpacityLevel = (byte)item.Value;
+					item.Description = item.Value.ToString();
+					int idx = submenu.CurrentSelection;
+					submenu.RefreshIndex();
+					submenu.CurrentSelection = idx;
 				};
 				submenu.AddItem(item);
 			}
+			submenu.RefreshIndex();
 		}
 
 		private void loadCameraSettingsMenu(UIMenu submenu)
@@ -177,6 +254,7 @@ namespace LapTimer
 				};
 				submenu.AddItem(item);
 			}
+			submenu.RefreshIndex();
 		}
 
 		private void loadLapTimeMenu(UIMenu sender)
@@ -245,6 +323,7 @@ namespace LapTimer
 				submenu.AddItem(item);
 			}
 
+			submenu.RefreshIndex();
 			return;
 			//return submenu;
 		}
@@ -276,6 +355,7 @@ namespace LapTimer
 			deleteAllCheckpointsBtn.Activated += (m, i) => race.clearAllSectorCheckpoints();
 			submenu.AddItem(deleteAllCheckpointsBtn);
 
+			submenu.RefreshIndex();
 			//return submenu;
 		}
 
@@ -301,9 +381,21 @@ namespace LapTimer
 					race.importReplay(r.filePath);
 					_menuPool.CloseAllMenus();
 				};
+				Regex rgx = new Regex("[0-9]{10,14}", RegexOptions.RightToLeft);
+				Match m = rgx.Match(f);
+				if (m.Success) {
+					DateTimeOffset date;
+					if (m.Length < 13)
+						date = DateTimeOffset.FromUnixTimeSeconds(long.Parse(m.Value));
+					else
+						date = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(m.Value));
+					date = date.ToLocalTime();
+					item.Description = date.ToString();
+				}
 				submenu.AddItem(item);
 			}
 
+			submenu.RefreshIndex();
 			return;
 			//return submenu;
 		}

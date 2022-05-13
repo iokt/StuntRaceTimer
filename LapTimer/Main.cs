@@ -74,6 +74,7 @@ namespace LapTimer
 				race.removePeds(wait: 252);
 				race.betterCamera();
 				race.preventCharSwitch();
+				race.stopCarWait();
 				race.preventVehicleExit();
 				race.preventTrain();
 				//race.checkBikeCollisions();
@@ -232,10 +233,34 @@ namespace LapTimer
 			race.freezeTime = ss.GetValue<int>(section, "freezeTime", 750);
 			race.showSpeedTrap = ss.GetValue<bool>(section, "showSpeedTrap", false);
 			race.displaySpeedInKmh = ss.GetValue<bool>(section, "useMetric", true);
+			race.enterRaceModeOnLoad = ss.GetValue<bool>(section, "enterRaceModeOnLoad", false);
 
 			// read Script hotkeys
 			section = "Script";
 			menuKey = ss.GetValue<Keys>(section, "menu", Keys.N);
+
+			// read tas mode settings
+			section = "TAS";
+			race.tasSaveOnOverwrite = ss.GetValue<bool>(section, "saveOnOverwrite", false);
+			race.tasSaveOnStopRecording = ss.GetValue<bool>(section, "saveOnStopRecording", true);
+
+			// read debug mode settings
+			section = "Debug";
+			race.debugMode = ss.GetValue<bool>(section, "on", false);
+			race.debugPlayerIsOpaque = ss.GetValue<bool>(section, "playerIsOpaque", false);
+			race.debugShowCheckpointHitbox = ss.GetValue<bool>(section, "showCheckpointHitbox", true);
+			race.debugShowInfo = ss.GetValue<bool>(section, "showInfo", true);
+			race.debugShowMidairAcceleration = ss.GetValue<bool>(section, "showMidairAcceleration", false);
+			race.debugShowPlayerPosition = ss.GetValue<bool>(section, "showPlayerPosition", true);
+			race.debugShowPlayerXYZAxes = ss.GetValue<bool>(section, "showPlayerXYZAxes", false);
+			race.debugShowXYZAxes = ss.GetValue<bool>(section, "showWorldXYZAxes", false);
+			race.debugPlayerOpacityLevel = ss.GetValue<byte>(section, "playerOpacityLevel", 100);
+			race.debugVehicleOpacityLevel = ss.GetValue<byte>(section, "vehicleOpacityLevel", 100);
+
+			// read camera settings
+			section = "Camera";
+			race.useDefaultCamera = ss.GetValue<bool>(section, "useDefaultCamera", false);
+
 		}
 
 		#endregion

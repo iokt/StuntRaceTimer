@@ -380,6 +380,7 @@ namespace LapTimer
 		public Quaternion quat;
 		public Vector3 vel;
 		public Vector3 rvel;
+		public float wheelspeed;
 		//Driving properties
 		public int model;
 		public float brakepower;

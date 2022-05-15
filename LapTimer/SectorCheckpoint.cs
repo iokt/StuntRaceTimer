@@ -10,9 +10,10 @@ namespace LapTimer
 	public class SectorCheckpoint
 	{
 		// defaults
-		private Color defaultColor = Color.FromArgb(150, 255, 255, 150);
+		private Color defaultColor = Color.FromArgb(210, 254, 235, 169); //HUD_COLOUR_YELLOWLIGHT
+		private Color defaultColorAir = Color.FromArgb(150, 254, 235, 169);
 		private Color defaultColor2 = Color.FromArgb(150, 255, 150, 0);
-		private Color defaultIconColor = Color.FromArgb(200, 150, 255, 255);
+		private Color defaultIconColor = Color.FromArgb(180, 93, 182, 229); //HUD_COLOUR_BLUE 128, 111, 177, 207); //123, 196, 255
 
 		// placement data (primary)
 		public Vector3 position;			// Entity.Position
@@ -30,7 +31,9 @@ namespace LapTimer
 
 		// placement constants
 		public const float checkpointRadius = 12.0f;
+		public const float checkpointVisualRadius = 11.3305f; //from memory: BA 49 35 41
 		public const float checkpointAirRadius = 22.5f;
+		public const float checkpointAirVisualRadius = 20f;
 		public const float zClamp = -9.0f; //tested
 		private readonly float doubleArrowThresh = 45.0f; //degrees
 		private readonly float tripleArrowThresh = 90.0f; //degrees
@@ -82,8 +85,9 @@ namespace LapTimer
 			return res;
         }
 
-		private CheckpointIcon getCheckpointIcon(float angle, bool air)
+		private CheckpointIcon getCheckpointIcon(float angle, bool air, bool gtaoStyle)
         {
+			if (gtaoStyle && air) return CheckpointIcon.RingSingleArrow;
 			if (angle > tripleArrowThresh) return air ? CheckpointIcon.RingTripleArrow : CheckpointIcon.CylinderTripleArrow3;
 			else if (angle > doubleArrowThresh) return air ? CheckpointIcon.RingDoubleArrow : CheckpointIcon.CylinderDoubleArrow3;
 			else return air ? CheckpointIcon.RingSingleArrow : CheckpointIcon.CylinderSingleArrow3;
@@ -96,7 +100,7 @@ namespace LapTimer
 		/// <param name="number">Placement mode only: the number to display on the checkpoint</param>
 		/// <param name="radius">Radius of the checkpoint, in meters</param>
 		/// <param name="target">Race mode only: position of the next checkpoint, if applicable. Omit or pass in <c>null</c> if not applicable</param>
-		public Marker placeMarker(MarkerType type, int number = 0, Vector3? target = null, Vector3? target2 = null, Vector3? last = null, Vector3? last2 = null, float radius = checkpointRadius)
+		public Marker placeMarker(MarkerType type, int number = 0, Vector3? target = null, Vector3? target2 = null, Vector3? last = null, Vector3? last2 = null, float radius = checkpointRadius, bool gtaoStyle = false)
 		{
 			// if the current instance of marker is already active, do nothing and return the instance
 			if (marker.active == true)
@@ -104,19 +108,23 @@ namespace LapTimer
 
 			// instantiate empty Marker
 			Marker newMarker = new Marker();
+			bool scaleVis = !gtaoStyle;
+			bool secondaryColor = !gtaoStyle;
 
 
 			//PRIMARY------------
 			radius = radius * chs;
 			if (isAirCheckpoint)
 				radius = radius * (checkpointAirRadius/checkpointRadius);
+			if (!scaleVis)
+				radius = isAirCheckpoint ? checkpointAirVisualRadius : checkpointVisualRadius;
 
 			Vector3 positionAir = new Vector3(position[0], position[1], position[2]+radius/2.0f); //Center rings in the air, not on the ground
 			
 			float angle = getAngle(last ?? position, position, target ?? position);
 			float angle2 = getAngle(last2 ?? position2, position2, target2 ?? position2);
-			CheckpointIcon defaultIcon = getCheckpointIcon(angle, isAirCheckpoint);
-			CheckpointIcon defaultIcon2 = getCheckpointIcon(angle2, isAirCheckpoint2);
+			CheckpointIcon defaultIcon = getCheckpointIcon(angle, isAirCheckpoint, gtaoStyle);
+			CheckpointIcon defaultIcon2 = getCheckpointIcon(angle2, isAirCheckpoint2, gtaoStyle);
 
 			Vector3 _target = target ?? Vector3.Zero;
 			// place a placement mode checkpoint
@@ -133,7 +141,7 @@ namespace LapTimer
 				if (isAirCheckpoint)
 				{
 					newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.RingDoubleArrow,
-						positionAir + checkpointOffset, checkpointOffset + _target, radius, defaultColor);
+						positionAir + checkpointOffset, checkpointOffset + _target, radius, defaultColorAir);
 				}
 				else {
 					newMarker.checkpoint = GTA.World.CreateCheckpoint(defaultIcon, //CheckpointIcon.CylinderDoubleArrow,
@@ -144,7 +152,7 @@ namespace LapTimer
 				if (isAirCheckpoint)
 				{
 					newMarker.checkpoint = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
-							positionAir + checkpointOffset, position + checkpointOffset, radius, defaultColor);
+							positionAir + checkpointOffset, position + checkpointOffset, radius, defaultColorAir);
 				}
 				else
                 {
@@ -152,9 +160,15 @@ namespace LapTimer
 							position + checkpointOffset, position + checkpointOffset, radius, defaultColor);
 				}
             }
-			
+			newMarker.checkpoint.CylinderFarHeight = radius/3;
+			newMarker.checkpoint.CylinderNearHeight = radius/3;
+			Function.Call(Hash._SET_CHECKPOINT_SCALE, newMarker.checkpoint.Handle, .4f); //actually _SET_CHECKPOINT_ICON_HEIGHT
+			Function.Call(Hash.SET_CHECKPOINT_RGBA2, newMarker.checkpoint.Handle, defaultIconColor.R, defaultIconColor.G, defaultIconColor.B, defaultIconColor.A);
+			//Function.Call(Hash._SET_CHECKPOINT_ICON_SCALE, newMarker.checkpoint.Handle, .5f);
+
 			//doesn't work
 			//newMarker.checkpoint.IconColor = defaultIconColor;
+			//Function.Call(Hash.SET_CHECKPOINT_RGBA2, defaultIconColor.R, defaultIconColor.G, defaultIconColor.B, defaultIconColor.A);
 
 			// create blip
 			newMarker.blip = GTA.World.CreateBlip(position);
@@ -169,22 +183,30 @@ namespace LapTimer
 			}
 			//-----------------------
 			//SECONDARY
+			Vector3 _target2 = target2 ?? _target;
 			if (hasSecondaryCheckpoint) {
 				float radius2 = checkpointRadius * chs2;
 				if (isAirCheckpoint2)
 					radius2 = radius2 * (checkpointAirRadius/checkpointRadius);
+				if (!scaleVis)
+					radius2 = isAirCheckpoint2 ? checkpointAirVisualRadius : checkpointVisualRadius;
+				Color c2;
+				if (secondaryColor)
+					c2 = defaultColor2;
+				else
+					c2 = isAirCheckpoint2 ? defaultColorAir : defaultColor;
 
 				Vector3 positionAir2 = new Vector3(position2[0], position2[1], position2[2]+radius2/2.0f);
 
-				Vector3 _target2 = target2 ?? _target;
-				if (_target2.Equals(Vector3.Zero)) _target2 = _target;
+				
+				if (_target2 == Vector3.Zero) _target2 = _target;
 				// place a placement mode checkpoint
 				if (type == MarkerType.placement)
 				{
 					newMarker.checkpoint2 = GTA.World.CreateCheckpoint(
 										new GTA.CheckpointCustomIcon(CheckpointCustomIconStyle.Number, Convert.ToByte(number)),
 										position2 + checkpointOffset, position2 + checkpointOffset,
-										radius2, defaultColor2);
+										radius2, c2);
 				}
 
 				// place a regular race checkpoint
@@ -193,12 +215,12 @@ namespace LapTimer
 					if (isAirCheckpoint2)
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.RingDoubleArrow,
-							positionAir2 + checkpointOffset, checkpointOffset + _target2, radius2, defaultColor2);
+							positionAir2 + checkpointOffset, checkpointOffset + _target2, radius2, c2);
 					}
 					else
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(defaultIcon2, //CheckpointIcon.CylinderDoubleArrow,
-							position2 + checkpointOffset, checkpointOffset + _target2, radius2, defaultColor2);
+							position2 + checkpointOffset, checkpointOffset + _target2, radius2, c2);
 					}
 				}
 
@@ -207,15 +229,19 @@ namespace LapTimer
 					if (isAirCheckpoint2)
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.RingCheckerboard,
-							positionAir2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
+							positionAir2 + checkpointOffset, position2 + checkpointOffset, radius2, c2);
 					}
 					else
 					{
 						newMarker.checkpoint2 = GTA.World.CreateCheckpoint(CheckpointIcon.CylinderCheckerboard3,
-							position2 + checkpointOffset, position2 + checkpointOffset, radius2, defaultColor2);
+							position2 + checkpointOffset, position2 + checkpointOffset, radius2, c2);
 					}
 				}
-			
+
+				newMarker.checkpoint2.CylinderFarHeight = radius2 / 3;
+				newMarker.checkpoint2.CylinderNearHeight = radius2 / 3;
+				Function.Call(Hash._SET_CHECKPOINT_SCALE, newMarker.checkpoint2.Handle, .4f); //actually _SET_CHECKPOINT_ICON_HEIGHT
+				Function.Call(Hash.SET_CHECKPOINT_RGBA2, newMarker.checkpoint2.Handle, defaultIconColor.R, defaultIconColor.G, defaultIconColor.B, defaultIconColor.A);
 
 				// create blip
 				newMarker.blip2 = GTA.World.CreateBlip(position2);
@@ -223,13 +249,12 @@ namespace LapTimer
 				newMarker.blip2.Color = BlipColor.Orange;
 				if (type == MarkerType.raceFinish)
 					newMarker.blip2.Sprite = BlipSprite.RaceFinish;
-
-				if (_target2 != _target)
-				{
-					newMarker.nextBlip2 = GTA.World.CreateBlip(_target2);
-					newMarker.nextBlip2.Scale = .5f;
-					newMarker.nextBlip2.Color = BlipColor.Orange;
-				}
+			}
+			if (_target2 != _target)
+			{
+				newMarker.nextBlip2 = GTA.World.CreateBlip(_target2);
+				newMarker.nextBlip2.Scale = .5f;
+				newMarker.nextBlip2.Color = BlipColor.Orange;
 			}
 			//-----------------------------------
 
@@ -258,7 +283,7 @@ namespace LapTimer
         {
             get
             {
-				return !(position2.Equals(Vector3.Zero));
+				return position2 != Vector3.Zero;
             }
         }
 

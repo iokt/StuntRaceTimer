@@ -234,6 +234,7 @@ namespace LapTimer
 			race.showSpeedTrap = ss.GetValue<bool>(section, "showSpeedTrap", false);
 			race.displaySpeedInKmh = ss.GetValue<bool>(section, "useMetric", true);
 			race.enterRaceModeOnLoad = ss.GetValue<bool>(section, "enterRaceModeOnLoad", false);
+			race.gtaoStyleCheckpoints = ss.GetValue<bool>(section, "gtaoStyleCheckpoints", false);
 
 			// read Script hotkeys
 			section = "Script";

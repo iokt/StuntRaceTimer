@@ -444,8 +444,8 @@ namespace LapTimer
 				{
 					//float costheta = Vector3.Dot(veh.UpVector, Vector3.WorldUp)/(veh.UpVector.Length() * Vector3.WorldUp.Length());
 					float theta = (float)Math.Acos(-veh.UpVector.Z); //angle between vehicle plane and Z=0 plane
-					Vector3 rotationPlaneNormal = Vector3.Cross(Vector3.WorldUp, veh.UpVector); //Normal of plane formed
-					Quaternion.GetDirectionVectors(new Quaternion(rotationPlaneNormal, theta * 2), out _, out _, out uv);
+					Vector3 rotationPlaneNormal = Vector3.Cross(Vector3.WorldUp, veh.UpVector); //normal of plane formed by the normals of vehicle plane and Z=0 plane
+					Quaternion.GetDirectionVectors(new Quaternion(rotationPlaneNormal, theta * 2), out _, out _, out uv); //rotate along this plane by double the angle
 					uv.Z = -uv.Z;
 				}
 				GTA.World.DrawLine(veh.Position, veh.Position + uv, Color.Orange);
@@ -1282,6 +1282,10 @@ namespace LapTimer
 		public void preventTrain()
         {
 			Function.Call(Hash.SET_DISABLE_RANDOM_TRAINS_THIS_FRAME, true);
+			//Vehicle veh = Game.Player.Character.CurrentVehicle;
+			//veh.Quaternion = new Quaternion(Vector3.UnitX, (float)Math.PI/2);
+			//GTA.UI.Screen.ShowSubtitle(activeCheckpoint.marker.checkpoint.MemoryAddress.ToString("X"));
+			//activeCheckpoint.marker.checkpoint.CylinderFarHeight = (Game.GameTime % 10);
         }
 		public void preventVehicleExit()
         {
@@ -1886,7 +1890,7 @@ namespace LapTimer
 			return ret;
 		}
 
-
+		public bool gtaoStyleCheckpoints = false;
 
 		/// <summary>
 		/// Activate the provided SectorCheckpoint after deactivating the current active checkpoint. 
@@ -1928,7 +1932,7 @@ namespace LapTimer
 
 			// the marker placed should be different, depending on whether this checkpoint is final
 			if (isFinal && !lapRace)
-				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceFinish, idx);
+				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceFinish, idx, gtaoStyle: gtaoStyleCheckpoints);
 
 			// if not final checkpoint, place a checkpoint w/ an arrow pointing to the next checkpoint
 			else
@@ -1939,7 +1943,7 @@ namespace LapTimer
 				Vector3 lastChkptPosition = getPrevCheckpoint(idx).position;
 				Vector3 lastChkptPosition2 = getPrevCheckpoint(idx).position2;
 				if (lastChkptPosition2 == Vector3.Zero) lastChkptPosition2 = lastChkptPosition;
-				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceArrow, idx, nextChkptPosition, nextChkptPosition2, lastChkptPosition, lastChkptPosition2);
+				activeCheckpoint.marker = activeCheckpoint.placeMarker(MarkerType.raceArrow, idx, nextChkptPosition, nextChkptPosition2, lastChkptPosition, lastChkptPosition2, gtaoStyle: gtaoStyleCheckpoints);
 			}
 
 			return activeCheckpoint;

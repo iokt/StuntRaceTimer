@@ -138,7 +138,7 @@ namespace LapTimer
 			submenu.AddItem(debugSettingsMenu);
 
 			// add a submenu for camera settings
-			UIMenuItem cameraSettingsMenu = new UIMenuItem("Camera Settings >>>");
+			UIMenuItem cameraSettingsMenu = new UIMenuItem("Race Settings >>>");
 			cameraSettingsMenu.Activated += (menu, sender) => {
 				loadCameraSettingsMenu(submenu);
 			};
@@ -212,8 +212,8 @@ namespace LapTimer
 			}
 			{
 				UIMenuSliderItem item = new UIMenuSliderItem("Player Opacity");
-				item.Value = race.debugPlayerOpacityLevel;
 				item.Maximum = 255;
+				item.Value = race.debugPlayerOpacityLevel;
 				item.OnSliderChanged += (menu, sender) =>
 				{
 					race.debugPlayerOpacityLevel = (byte)item.Value;
@@ -226,8 +226,8 @@ namespace LapTimer
             }
 			{
 				UIMenuSliderItem item = new UIMenuSliderItem("Vehicle Opacity");
-				item.Value = race.debugVehicleOpacityLevel;
 				item.Maximum = 255;
+				item.Value = race.debugVehicleOpacityLevel;
 				item.OnSliderChanged += (menu, sender) =>
 				{
 					race.debugVehicleOpacityLevel = (byte)item.Value;
@@ -251,6 +251,15 @@ namespace LapTimer
 				item.CheckboxEvent += (menu, sender) =>
 				{
 					race.useDefaultCamera = item.Checked;
+				};
+				submenu.AddItem(item);
+			}
+			{
+				UIMenuCheckboxItem item;
+				item = new UIMenuCheckboxItem("GTA Online Style Checkpoints", race.gtaoStyleCheckpoints);
+				item.CheckboxEvent += (menu, sender) =>
+				{
+					race.gtaoStyleCheckpoints = item.Checked;
 				};
 				submenu.AddItem(item);
 			}

@@ -88,10 +88,10 @@ namespace LapTimer
 		public Weather weather;
 		public Vector3 spawn;
 
-		public NativeUI.TimerBarPool pool = new NativeUI.TimerBarPool();
-		private NativeUI.TextTimerBar lapTimerBar;
-		private NativeUI.TextTimerBar pbTimerBar;
-		private NativeUI.TextTimerBar totalTimerBar;
+		public LemonUI.TimerBars.TimerBarCollection pool = new LemonUI.TimerBars.TimerBarCollection();
+		private LemonUI.TimerBars.TimerBar lapTimerBar;
+		private LemonUI.TimerBars.TimerBar pbTimerBar;
+		private LemonUI.TimerBars.TimerBar totalTimerBar;
 
 		#endregion
 
@@ -464,15 +464,19 @@ namespace LapTimer
 				Regex rgx = new Regex("[^a-zA-Z0-9 ~]");
 				//string t = rgx.Replace(string.Join("~n~", debuginfo).Replace(".", " ").Replace("-", "m").Replace("∞", "Infinity"), " ");
 				//t = String.Format("{0}", float.NegativeInfinity);
-				SizeF res = NativeUI.UIMenu.GetScreenResolutionMaintainRatio();
-				Point safe = NativeUI.UIMenu.GetSafezoneBounds();
+				//SizeF res = NativeUI.UIMenu.GetScreenResolutionMaintainRatio();
+				//Point safe = NativeUI.UIMenu.GetSafezoneBounds();
+				//float relX, relY;
+				//LemonUI.Screen.ToRelative(1520, 100, out relX, out relY);
 				float size = .25f;
-				float x = res.Width - safe.X - 400;
+				//SizeF res = new SizeF(relX, relY);
+				float x = 1520; // relX; // res.Width - safe.X - 400;
 				for (int i = 0; i < debuginfo.Length; i++)
 				{
 					string t = rgx.Replace(debuginfo[i].Replace(" ", "~w~ ").Replace(":", "~g~ ").Replace(".", " ").Replace("E-", "EM").Replace("-", "~o~").Replace("∞", "Infinity"), " ");
 
-					float y = safe.Y + 100 + ((60 * size * i));
+					//float y = safe.Y + 100 + ((60 * size * i));
+					float y = 100 + ((60 * size * i));
 					LemonUI.Elements.ScaledText text = new LemonUI.Elements.ScaledText(new PointF(x, y), t, size, GTA.UI.Font.Monospace);
 					text.Alignment = Alignment.Left;
 					text.Outline = true;
@@ -1765,8 +1769,14 @@ namespace LapTimer
 		private void drawTimestring(string timestring, int index)
         {
 			int interval = index * 10;
-			SizeF res = NativeUI.UIMenu.GetScreenResolutionMaintainRatio();
-			Point safe = NativeUI.UIMenu.GetSafezoneBounds();
+			float relX, relY;
+			//LemonUI.Screen.ToRelative(1520, 100, out relX, out relY);
+			relX = 600;
+			relY = 600;
+			float size = .25f;
+			//SizeF res = new SizeF(relX, relY);
+			//SizeF res = NativeUI.UIMenu.GetScreenResolutionMaintainRatio();
+			//Point safe = NativeUI.UIMenu.GetSafezoneBounds();
 
 			for (int i = 0; i < timestring.Length; i++)
 			{
@@ -1774,8 +1784,11 @@ namespace LapTimer
 				//if (i + 1 < timestring.Length && (timestring[i + 1] == ':' || timestring[i + 1] == '.')) mult = 1;
 				int addOne = (Char.IsDigit(timestring[i]) ? 0 : 1);
 				string Text = timestring.Substring(i, 1).PadRight((timestring.Length - i - 1) + numDigits + addOne, ' ') + '.'; //TODO: better string formatting
-				NativeUI.UIResText.Draw(Text, (int)res.Width - safe.X - 10, (int)res.Height - safe.Y - (42 + (4 * interval)), SHVDN2.GTA.Font.ChaletLondon, 0.5f, Color.White,
-					NativeUI.UIResText.Alignment.Right, false, false, 0);
+				LemonUI.Elements.ScaledText textToDraw = new LemonUI.Elements.ScaledText(new PointF(1928, 1080 - (36 + (4.4f * interval))), Text, 0.46f, GTA.UI.Font.ChaletLondon);
+				textToDraw.Alignment = Alignment.Right;
+				textToDraw.Draw();
+				//NativeUI.UIResText.Draw(Text, (int)res.Width - safe.X - 10, (int)res.Height - safe.Y - (42 + (4 * interval)), SHVDN2.GTA.Font.ChaletLondon, 0.5f, Color.White,
+				//	NativeUI.UIResText.Alignment.Right, false, false, 0);
 			}
 		}
 
@@ -1788,7 +1801,8 @@ namespace LapTimer
 			string totalTimestring = formatTimestring(totalTime);
 			string pbTimestring = formatTimestring(pbTime);
 			//lapTimerBar.Text = "abcdef\r \033[Azxywvut";
-			List<NativeUI.TimerBarBase> poolList = pool.ToList();
+			List<LemonUI.TimerBars.TimerBar> poolList = pool.TimerBars.ToList();
+			poolList.Reverse();
 			if (poolList == null) return;
 			int lapTimerBarIndex = (lapTimerBar != null) ? poolList.IndexOf(lapTimerBar) : -1;
 			int totalTimerBarIndex = (totalTimerBar != null) ? poolList.IndexOf(totalTimerBar) : -1;
@@ -1797,29 +1811,29 @@ namespace LapTimer
 			{
 				if (lapStartTime >= 0)
 				{
-					lapTimerBar.Text = "";
+					lapTimerBar.Info = "";
 					drawTimestring(lapTimestring, lapTimerBarIndex);
 				}
-				else lapTimerBar.Text = "--:--.---";
+				else lapTimerBar.Info = "--:--.---";
 			}
 			
 			if (totalTimerBarIndex != -1)
 			{	if (raceStartTime >= 0)
 				{ 
-					totalTimerBar.Text = "";
+					totalTimerBar.Info = "";
 					drawTimestring(totalTimestring, totalTimerBarIndex);
 				}
-				else totalTimerBar.Text = "--:--.---";
+				else totalTimerBar.Info = "--:--.---";
 			}
 			
 			if (pbTimerBarIndex != -1)
 			{
 				if (pbTime >= 0)
 				{
-					pbTimerBar.Text = "";
+					pbTimerBar.Info = "";
 					drawTimestring(pbTimestring, pbTimerBarIndex);
 				}
-				else pbTimerBar.Text = "--:--.---";
+				else pbTimerBar.Info = "--:--.---";
 			}
 			
 		}
@@ -1875,9 +1889,9 @@ namespace LapTimer
 			pool.Remove(totalTimerBar);
 			pool.Remove(pbTimerBar);
 			pool.Remove(lapTimerBar);
-			totalTimerBar = new NativeUI.TextTimerBar("TIME", "--:--.---");
-			pbTimerBar = new NativeUI.TextTimerBar("PERSONAL RECORD", "--:--.---");
-			lapTimerBar = new NativeUI.TextTimerBar("CURRENT LAP", "--:--.---");
+			totalTimerBar = new LemonUI.TimerBars.TimerBar("TIME", "--:--.---");
+			pbTimerBar = new LemonUI.TimerBars.TimerBar("PERSONAL RECORD", "--:--.---");
+			lapTimerBar = new LemonUI.TimerBars.TimerBar("CURRENT LAP", "--:--.---");
 			// set the lap start time to -100 hours
 			lapStartTime = defaultLapStartTime;
 			//race hasn't started yet
@@ -1907,15 +1921,15 @@ namespace LapTimer
 				waitForCountdown = true;
 				//GTA.UI.Screen.ShowSubtitle("~g~Lap Timer: Go!");
 				Game.Player.CanControlCharacter = true;
-				
+
 
 				// start the clock by getting the current GameTime
 				//lapStartTime = Game.GameTime;
 				//raceStartTime = lapStartTime;
 
-				
-				pool.Add(pbTimerBar);
 				pool.Add(totalTimerBar);
+				pool.Add(pbTimerBar);
+				
 			}
 			else
             {
@@ -1928,11 +1942,11 @@ namespace LapTimer
 				Game.Player.Character.CurrentVehicle.Quaternion = start.quaternion;
 				fixCar();
 
-				
 
-				pool.Add(totalTimerBar);
-				pool.Add(pbTimerBar);
 				pool.Add(lapTimerBar);
+				pool.Add(pbTimerBar);
+				pool.Add(totalTimerBar);
+
 			}
 			
 

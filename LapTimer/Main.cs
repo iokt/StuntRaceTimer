@@ -30,7 +30,7 @@ namespace LapTimer
 		public RaceTimerMain()
 		{
 			Tick += onTick;
-			Tick += (o, e) => menu._menuPool.ProcessMenus();
+			Tick += (o, e) => menu.processMenus(); // _menuPool.Process();
 			Interval = 1;
 			Aborted += OnShutdown;
 		}
@@ -90,7 +90,7 @@ namespace LapTimer
 				if (race.debugMode)
 					race.drawDebug();
 				race.updatePools();
-				race.pool.Draw();
+				race.pool.Process();
 				if (race.waitForCountdown)
                 {
 					race.countdown();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using GTA;
-using NativeUI;
+//using NativeUI;
 
 
 namespace LapTimer
@@ -12,20 +12,22 @@ namespace LapTimer
 	{
 		RaceControl race;
 
-		public MenuPool _menuPool;
-		public UIMenu mainMenu;
+		public LemonUI.ObjectPool _menuPool;
+		public LemonUI.Menus.NativeMenu mainMenu;
 
 		public NativeUIMenu(ref RaceControl raceControl)
 		{
 			race = raceControl;
 
 			// create new menu pool & add the main menu to it
-			_menuPool = new MenuPool();
+			_menuPool = new LemonUI.ObjectPool();
 			_menuPool.Add(buildMainMenu());
 		}
 
 
 		#region publicMethods
+		private List<LemonUI.Menus.NativeMenu> submenusToAddToPool = new List<LemonUI.Menus.NativeMenu>();
+		private List<LemonUI.Menus.NativeMenu> submenusAddedToPool = new List<LemonUI.Menus.NativeMenu>();
 
 		/// <summary>
 		/// Toggle visibility of menus. If no menu is currently open, open main menu.
@@ -33,9 +35,9 @@ namespace LapTimer
 		/// <returns>boolean indicating whether a menu is now open</returns>
 		public bool toggleMenu()
 		{
-			if (_menuPool.IsAnyMenuOpen())
+			if (_menuPool.AreAnyVisible)
 			{
-				_menuPool.CloseAllMenus();
+				_menuPool.HideAll();
 				return false;
 			}
 			else
@@ -45,42 +47,70 @@ namespace LapTimer
 			}
 		}
 
+		public void processMenus()
+        {
+			_menuPool.Process();
+			foreach (LemonUI.Menus.NativeMenu submenu in submenusToAddToPool)
+            {
+				_menuPool.Add(submenu);
+            }
+			submenusToAddToPool.Clear();
+			if (!_menuPool.AreAnyVisible)
+			{
+				foreach (LemonUI.Menus.NativeMenu submenu in submenusAddedToPool)
+				{
+					_menuPool.Remove(submenu);
+				}
+				submenusAddedToPool.Clear();
+			}
+		}
+
 		#endregion
 
 
 
 		#region menus
 
-		private UIMenu buildMainMenu()
+		private LemonUI.Menus.NativeMenu buildMainMenu()
 		{
-			mainMenu = new UIMenu("Race Timer", "~b~by iLike2Teabag");
+			mainMenu = new LemonUI.Menus.NativeMenu("Race Timer", "~b~by iLike2Teabag");
 
 			// add a submenu to handle race imports
-			UIMenu raceImportMenu = _menuPool.AddSubMenu(mainMenu, "Race Import Menu", "Choose races to import from file");
-			raceImportMenu.OnMenuOpen += buildRaceImportMenu;
-			buildRaceImportMenu(raceImportMenu);
+			LemonUI.Menus.NativeMenu raceImportMenu = new LemonUI.Menus.NativeMenu("", "Race Import Menu", "Choose races to import from file");
+			_menuPool.Add(raceImportMenu);
+			mainMenu.AddSubMenu(raceImportMenu);
+			raceImportMenu.Shown += (sender, e) => buildRaceImportMenu(raceImportMenu, null);
+			buildRaceImportMenu(raceImportMenu, null);
 
 			// add a submenu for race control
-			UIMenu raceControlMenu = _menuPool.AddSubMenu(mainMenu, "Race Control Menu", "Modify checkpoints and race mode");
-			raceControlMenu.OnMenuOpen += buildRaceControlMenu;
+			LemonUI.Menus.NativeMenu raceControlMenu = new LemonUI.Menus.NativeMenu("", "Race Control Menu", "Modify checkpoints and race mode");
+			_menuPool.Add(raceControlMenu);
+			mainMenu.AddSubMenu(raceControlMenu);
+			raceControlMenu.Shown += (sender, e) => buildRaceControlMenu(raceControlMenu);
 			//buildRaceControlMenu(raceControlMenu);
 
 			// add a submenu to handle race imports
-			UIMenu replayImportMenu = _menuPool.AddSubMenu(mainMenu, "Replay Import Menu", "Choose replays to import from file");
-			replayImportMenu.OnMenuOpen += buildReplayImportMenu;
+			LemonUI.Menus.NativeMenu replayImportMenu = new LemonUI.Menus.NativeMenu("", "Replay Import Menu", "Choose replays to import from file");
+			_menuPool.Add(replayImportMenu);
+			mainMenu.AddSubMenu(replayImportMenu);
+			replayImportMenu.Shown += (sender, e) => buildReplayImportMenu(replayImportMenu);
 			buildReplayImportMenu(replayImportMenu);
 
 			// add a submenu for settings
-			UIMenu settingsMenu = _menuPool.AddSubMenu(mainMenu, "Settings Menu");
-			settingsMenu.OnMenuOpen += loadSettingsMenu;
+			LemonUI.Menus.NativeMenu settingsMenu = new LemonUI.Menus.NativeMenu("", "Settings Menu");
+			_menuPool.Add(settingsMenu);
+			mainMenu.AddSubMenu(settingsMenu);
+			settingsMenu.Shown += (sender, e) => loadSettingsMenu(settingsMenu);
 
 			// add a submenu for Timing Sheet
-			UIMenu lapTimeMenu = _menuPool.AddSubMenu(mainMenu, "Lap Times", "Display lap times for the current race");
-			lapTimeMenu.OnMenuOpen += loadLapTimeMenu;
+			LemonUI.Menus.NativeMenu lapTimeMenu = new LemonUI.Menus.NativeMenu("", "Lap Times", "Display lap times for the current race");
+			_menuPool.Add(lapTimeMenu);
+			mainMenu.AddSubMenu(lapTimeMenu);
+			lapTimeMenu.Shown += (sender, e) => loadLapTimeMenu(lapTimeMenu);
 
 			// add controls to enter placement, race, debug modes
-			UIMenuItem placementToggle = new UIMenuItem("Toggle Placement Mode");
-			UIMenuItem raceToggle = new UIMenuItem("Toggle Race Mode");
+			LemonUI.Menus.NativeItem placementToggle = new LemonUI.Menus.NativeItem("Toggle Placement Mode");
+			LemonUI.Menus.NativeItem raceToggle = new LemonUI.Menus.NativeItem("Toggle Race Mode");
 			placementToggle.Activated += (menu, sender) =>
 			{
 				race.togglePlacementMode();
@@ -88,10 +118,10 @@ namespace LapTimer
 			raceToggle.Activated += (menu, sender) => {
 				race.toggleRaceMode();
 			};
-			mainMenu.AddItem(placementToggle);
-			mainMenu.AddItem(raceToggle);
+			mainMenu.Add(placementToggle);
+			mainMenu.Add(raceToggle);
 
-			
+
 
 			/**
 			// add a submenu for debug settings
@@ -104,169 +134,171 @@ namespace LapTimer
 			**/
 
 			// add control to export race
-			UIMenuItem exportRaceItem = new UIMenuItem("Export Race");
+			LemonUI.Menus.NativeItem exportRaceItem = new LemonUI.Menus.NativeItem("Export Race");
 			exportRaceItem.Activated += (menu, sender) => race.exportRace();
-			mainMenu.AddItem(exportRaceItem);
+			mainMenu.Add(exportRaceItem);
 
-			UIMenuItem exportReplayItem = new UIMenuItem("Export Replay");
+			LemonUI.Menus.NativeItem exportReplayItem = new LemonUI.Menus.NativeItem("Export Replay");
 			exportReplayItem.Activated += (menu, sender) => race.exportReplay(askname: true);
-			mainMenu.AddItem(exportReplayItem);
+			mainMenu.Add(exportReplayItem);
 
-			mainMenu.RefreshIndex();
+			//mainMenu.RefreshIndex();
 			return mainMenu;
 		}
 		
-		private void loadSettingsMenu(UIMenu submenu)
+		private void loadSettingsMenu(LemonUI.Menus.NativeMenu submenu)
         {
 			submenu.Clear();
 
-			UIMenuCheckboxItem debugToggle = new UIMenuCheckboxItem("Toggle Debug Mode", race.debugMode);
-			UIMenuCheckboxItem ghostToggle = new UIMenuCheckboxItem("Toggle Ghost Mode", race.tasPlaybackGhostMode);
-			debugToggle.CheckboxEvent += (menu, sender) => {
+			LemonUI.Menus.NativeCheckboxItem debugToggle = new LemonUI.Menus.NativeCheckboxItem("Toggle Debug Mode", race.debugMode);
+			LemonUI.Menus.NativeCheckboxItem ghostToggle = new LemonUI.Menus.NativeCheckboxItem("Toggle Ghost Mode", race.tasPlaybackGhostMode);
+			debugToggle.CheckboxChanged += (menu, sender) => {
 				race.toggleDebugMode();
 				debugToggle.Checked = race.debugMode;
 			};
-			ghostToggle.CheckboxEvent += (menu, sender) => race.tasPlaybackGhostMode = ghostToggle.Checked;
-			submenu.AddItem(debugToggle);
-			submenu.AddItem(ghostToggle);
+			ghostToggle.CheckboxChanged += (menu, sender) => race.tasPlaybackGhostMode = ghostToggle.Checked;
+			submenu.Add(debugToggle);
+			submenu.Add(ghostToggle);
 
 			// add a submenu for debug settings
-			UIMenuItem debugSettingsMenu = new UIMenuItem("Debug Mode Settings >>>");
-			debugSettingsMenu.Activated += (menu, sender) => { 
-				loadDebugSettingsMenu(submenu); 
+			LemonUI.Menus.NativeMenu debugSettingsMenu = new LemonUI.Menus.NativeMenu("", "Debug Mode Settings");
+			debugSettingsMenu.Shown += (menu, sender) => { 
+				loadDebugSettingsMenu(debugSettingsMenu); 
 			};
-			submenu.AddItem(debugSettingsMenu);
+			submenu.AddSubMenu(debugSettingsMenu);
+			submenusToAddToPool.Add(debugSettingsMenu);
 
 			// add a submenu for camera settings
-			UIMenuItem cameraSettingsMenu = new UIMenuItem("Race Settings >>>");
-			cameraSettingsMenu.Activated += (menu, sender) => {
-				loadCameraSettingsMenu(submenu);
+			LemonUI.Menus.NativeMenu cameraSettingsMenu = new LemonUI.Menus.NativeMenu("", "Race Settings");
+			cameraSettingsMenu.Shown += (menu, sender) => {
+				loadCameraSettingsMenu(cameraSettingsMenu);
 			};
-			submenu.AddItem(cameraSettingsMenu);
+			submenu.AddSubMenu(cameraSettingsMenu);
+			submenusToAddToPool.Add(cameraSettingsMenu);
 
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 		}
-		private void loadDebugSettingsMenu(UIMenu submenu)
+		private void loadDebugSettingsMenu(LemonUI.Menus.NativeMenu submenu)
         {
 			// clear the menu
 			submenu.Clear();
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Checkpoint Hitboxes", race.debugShowCheckpointHitbox);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Checkpoint Hitboxes", race.debugShowCheckpointHitbox);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowCheckpointHitbox = item.Checked;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Global XYZ Axes", race.debugShowXYZAxes);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Global XYZ Axes", race.debugShowXYZAxes);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowXYZAxes = item.Checked;
 				};
 				item.Description = "Red: +X (East), Green: +Y (North), Blue: +Z (Up)";
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Player XYZ Axes", race.debugShowPlayerXYZAxes);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Player XYZ Axes", race.debugShowPlayerXYZAxes);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowPlayerXYZAxes = item.Checked;
 				};
 				item.Description = "LightRed: Right, LightGreen: Forward, LightBlue: Up";
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Player Position", race.debugShowPlayerPosition);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Player Position", race.debugShowPlayerPosition);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowPlayerPosition = item.Checked;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Midair Acceleration", race.debugShowMidairAcceleration);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Midair Acceleration", race.debugShowMidairAcceleration);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowMidairAcceleration = item.Checked;
 				};
 				item.Description = "Estimated direction of bonus midair acceleration, not current midair acceleration.";
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Show Debug Info", race.debugShowInfo);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Show Debug Info", race.debugShowInfo);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugShowInfo = item.Checked;
 				};
 				item.Description = "Orange numbers are negative.";
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item = new UIMenuCheckboxItem("Toggle Player Opacity", race.debugPlayerIsOpaque);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item = new LemonUI.Menus.NativeCheckboxItem("Toggle Player Opacity", race.debugPlayerIsOpaque);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.debugPlayerIsOpaque = item.Checked;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuSliderItem item = new UIMenuSliderItem("Player Opacity");
+				LemonUI.Menus.NativeSliderItem item = new LemonUI.Menus.NativeSliderItem("Player Opacity");
 				item.Maximum = 255;
 				item.Value = race.debugPlayerOpacityLevel;
-				item.OnSliderChanged += (menu, sender) =>
+				item.ValueChanged += (menu, sender) =>
 				{
 					race.debugPlayerOpacityLevel = (byte)item.Value;
 					item.Description = item.Value.ToString();
-					int idx = submenu.CurrentSelection;
-					submenu.RefreshIndex();
-					submenu.CurrentSelection = idx;
+					int idx = submenu.SelectedIndex;
+					//submenu.RefreshIndex();
+					submenu.SelectedIndex = idx;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
             }
 			{
-				UIMenuSliderItem item = new UIMenuSliderItem("Vehicle Opacity");
+				LemonUI.Menus.NativeSliderItem item = new LemonUI.Menus.NativeSliderItem("Vehicle Opacity");
 				item.Maximum = 255;
 				item.Value = race.debugVehicleOpacityLevel;
-				item.OnSliderChanged += (menu, sender) =>
+				item.ValueChanged += (menu, sender) =>
 				{
 					race.debugVehicleOpacityLevel = (byte)item.Value;
 					item.Description = item.Value.ToString();
-					int idx = submenu.CurrentSelection;
-					submenu.RefreshIndex();
-					submenu.CurrentSelection = idx;
+					int idx = submenu.SelectedIndex;
+					//submenu.RefreshIndex();
+					submenu.SelectedIndex = idx;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 		}
 
-		private void loadCameraSettingsMenu(UIMenu submenu)
+		private void loadCameraSettingsMenu(LemonUI.Menus.NativeMenu submenu)
 		{
 			// clear the menu
 			submenu.Clear();
 			{
-				UIMenuCheckboxItem item;
-				item = new UIMenuCheckboxItem("Use Default Camera", race.useDefaultCamera);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item;
+				item = new LemonUI.Menus.NativeCheckboxItem("Use Default Camera", race.useDefaultCamera);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.useDefaultCamera = item.Checked;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 			{
-				UIMenuCheckboxItem item;
-				item = new UIMenuCheckboxItem("GTA Online Style Checkpoints", race.gtaoStyleCheckpoints);
-				item.CheckboxEvent += (menu, sender) =>
+				LemonUI.Menus.NativeCheckboxItem item;
+				item = new LemonUI.Menus.NativeCheckboxItem("GTA Online Style Checkpoints", race.gtaoStyleCheckpoints);
+				item.CheckboxChanged += (menu, sender) =>
 				{
 					race.gtaoStyleCheckpoints = item.Checked;
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 		}
 
-		private void loadLapTimeMenu(UIMenu sender)
+		private void loadLapTimeMenu(LemonUI.Menus.NativeMenu sender)
 		{
 			// clear the menu
 			sender.Clear();
@@ -282,37 +314,42 @@ namespace LapTimer
 			var times = finalChkpt.timing.vehicleFastestTime.OrderBy(x => x.Value);
 			foreach (KeyValuePair<string, int> entry in times)
 			{
-				sender.AddItem(new UIMenuItem(TimingData.msToReadable(entry.Value, false, true) + " - " + entry.Key));
+				sender.Add(new LemonUI.Menus.NativeItem(TimingData.msToReadable(entry.Value, false, true) + " - " + entry.Key));
 			}
 
-			sender.RefreshIndex();
+			//sender.RefreshIndex();
 		}
 
-		private string subdir = null;
-		private void buildRaceImportMenu(UIMenu submenu)
+		//private string subdir = null;
+		private List<LemonUI.Menus.NativeMenu> racesubmenus = new List<LemonUI.Menus.NativeMenu>();
+		private void buildRaceImportMenu(LemonUI.Menus.NativeMenu submenu, string subdir)
 		{
 			submenu.Clear();
+			/**
 			if (subdir != null)
 			{
-				UIMenuItem item = new UIMenuItem("Back <<<");
+				LemonUI.Menus.NativeItem item = new LemonUI.Menus.NativeItem("Back <<<");
 				item.Activated += (menu, sender) =>
 				{
 					subdir = null;
 					buildRaceImportMenu(submenu);
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
+			**/
+			//_menuPool.Remove
 
 			foreach (string dir in RaceExporter.getSubdirectories(subdir))
             {
 				char[] separators = { '/', '\\' };
-				UIMenuItem item = new UIMenuItem(dir.Substring(dir.LastIndexOfAny(separators) + 1) + " >>>");
-				item.Activated += (menu, sender) =>
+				LemonUI.Menus.NativeMenu item = new LemonUI.Menus.NativeMenu("", dir.Substring(dir.LastIndexOfAny(separators) + 1));
+				item.Shown += (menu, sender) =>
 				{
-					subdir = dir;
-					buildRaceImportMenu(submenu);
+					//subdir = dir;
+					buildRaceImportMenu(item, dir);
 				};
-				submenu.AddItem(item);
+				submenusToAddToPool.Add(item);
+				submenu.AddSubMenu(item);
             }
 
 			// get a List all races that can be imported
@@ -323,52 +360,52 @@ namespace LapTimer
 				string descriptionString = r.name + 
 					"\nMode: " + (r.lapMode ? "circuit" : "point-to-point") + 
 					"\nVersion: " + r.version ?? "v1.x";
-				UIMenuItem item = new UIMenuItem(r.name, descriptionString);
+				LemonUI.Menus.NativeItem item = new LemonUI.Menus.NativeItem(r.name, descriptionString);
 				item.Activated += (menu, sender) =>
 				{
 					race.importRace(r.filePath);
-					_menuPool.CloseAllMenus();
+					_menuPool.HideAll();
 				};
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 			return;
 			//return submenu;
 		}
 
 
 
-		private void buildRaceControlMenu(UIMenu submenu)
+		private void buildRaceControlMenu(LemonUI.Menus.NativeMenu submenu)
 		{
 			submenu.Clear();
 
 			// add checkbox to toggle lap mode
 			string lapModeDescription = "If checked, race is a circuit, and automatically restarts. If unchecked, race is point-to-point";
-			UIMenuCheckboxItem lapModeItem = new UIMenuCheckboxItem("Lap Mode", race.lapRace, lapModeDescription);
-			lapModeItem.CheckboxEvent += (sender, status) => race.lapRace = status;
-			submenu.AddItem(lapModeItem);
+			LemonUI.Menus.NativeCheckboxItem lapModeItem = new LemonUI.Menus.NativeCheckboxItem("Lap Mode", lapModeDescription, race.lapRace);
+			lapModeItem.CheckboxChanged += (sender, status) => race.lapRace = lapModeItem.Checked;
+			submenu.Add(lapModeItem);
 
 			// add button to place checkpoint
-			UIMenuItem addCheckpointBtn = new UIMenuItem("Place checkpoint", "Place a checkpoint at the player's current location");
+			LemonUI.Menus.NativeItem addCheckpointBtn = new LemonUI.Menus.NativeItem("Place checkpoint", "Place a checkpoint at the player's current location");
 			addCheckpointBtn.Activated += (m, i) => race.createSectorCheckpoint();
-			submenu.AddItem(addCheckpointBtn);
+			submenu.Add(addCheckpointBtn);
 
 			// undo last placed checkpoint
-			UIMenuItem undoCheckpointBtn = new UIMenuItem("Undo last checkpoint", "Remove the last checkpoint");
+			LemonUI.Menus.NativeItem undoCheckpointBtn = new LemonUI.Menus.NativeItem("Undo last checkpoint", "Remove the last checkpoint");
 			undoCheckpointBtn.Activated += (m, i) => race.deleteLastSectorCheckpoint();
-			submenu.AddItem(undoCheckpointBtn);
+			submenu.Add(undoCheckpointBtn);
 
 			// delete all checkpoints
-			UIMenuItem deleteAllCheckpointsBtn = new UIMenuItem("Delete all checkpoints");
+			LemonUI.Menus.NativeItem deleteAllCheckpointsBtn = new LemonUI.Menus.NativeItem("Delete all checkpoints");
 			deleteAllCheckpointsBtn.Activated += (m, i) => race.clearAllSectorCheckpoints();
-			submenu.AddItem(deleteAllCheckpointsBtn);
+			submenu.Add(deleteAllCheckpointsBtn);
 
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 			//return submenu;
 		}
 
-		private void buildReplayImportMenu(UIMenu submenu)
+		private void buildReplayImportMenu(LemonUI.Menus.NativeMenu submenu)
 		{
 			submenu.Clear();
 
@@ -384,11 +421,11 @@ namespace LapTimer
 				//UIMenuItem item = new UIMenuItem(r.name, descriptionString);
 				string f = r.filePath;
 				f = f.Substring(f.LastIndexOf('/')+1).Replace(".json.gz", "");
-				UIMenuItem item = new UIMenuItem(f);
+				LemonUI.Menus.NativeItem item = new LemonUI.Menus.NativeItem(f);
 				item.Activated += (menu, sender) =>
 				{
 					race.importReplay(r.filePath);
-					_menuPool.CloseAllMenus();
+					_menuPool.HideAll();
 				};
 				Regex rgx = new Regex("[0-9]{10,14}", RegexOptions.RightToLeft);
 				Match m = rgx.Match(f);
@@ -401,10 +438,10 @@ namespace LapTimer
 					date = date.ToLocalTime();
 					item.Description = date.ToString();
 				}
-				submenu.AddItem(item);
+				submenu.Add(item);
 			}
 
-			submenu.RefreshIndex();
+			//submenu.RefreshIndex();
 			return;
 			//return submenu;
 		}

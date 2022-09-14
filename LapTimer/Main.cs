@@ -38,6 +38,13 @@ namespace LapTimer
 
 		private void onTick(object sender, EventArgs e)
 		{
+			/*
+			LemonUI.Elements.ScaledText text = new LemonUI.Elements.ScaledText(new PointF(1000, 500), "testing", 1f, GTA.UI.Font.Monospace);
+			text.Alignment = GTA.UI.Alignment.Left;
+			text.Outline = true;
+			text.Draw();
+			*/
+
 			if (firstTime) // if this is the users first time loading the mod, this information will appear
 			{
 				GTA.UI.Screen.ShowSubtitle(ModName + " by " + Developer + " Loaded");
@@ -84,7 +91,10 @@ namespace LapTimer
 					race.drawDebug();
 				race.updatePools();
 				race.pool.Draw();
-
+				if (race.waitForCountdown)
+                {
+					race.countdown();
+                }
 				
 				
 			}

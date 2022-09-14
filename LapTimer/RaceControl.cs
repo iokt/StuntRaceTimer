@@ -436,8 +436,10 @@ namespace LapTimer
 			if (debugShowMidairAcceleration)
 			{
 				Vector3 uv;
-				if (veh.IsMotorcycle)
+				
+				if (veh.IsBike || veh.IsQuadBike)
 				{
+					//https://gtacars.net/gta5/?filter_vehicle_type=amphibious_quadbike&filter_vehicle_type=bicycle&filter_vehicle_type=bike&filter_vehicle_type=quadbike&page=1
 					uv = -veh.UpVector;
 				}
 				else
@@ -547,15 +549,18 @@ namespace LapTimer
 
 			//Timing
 			current.frametime = Game.LastFrameTime;
+			current.framecount = Game.FrameCount;
 			current.gametime = Game.GameTime;
 			current.offset = offset;
 			current.laptime = lapTime;
 			current.totaltime = totalTime;
 			current.activecheckpoint = activeSector;
+			current.timescale = Game.TimeScale;
 
 			//Position, Rotation, Velocity
 			current.pos = veh.Position;
 			current.quat = veh.Quaternion;
+			current.rot = veh.Rotation;
 			current.vel = veh.Velocity;
 			current.rvel = veh.WorldRotationVelocity;
 			current.wheelspeed = veh.WheelSpeed;
@@ -595,6 +600,7 @@ namespace LapTimer
 				}
 				wheelProperties wheel = new wheelProperties();
 				wheel.memory = mem.ToArray();
+				wheel.boneid = wheels[i].BoneId;
 				wheelprops.Add(wheel);
 			}
 			current.wheels = wheelprops.ToArray();
@@ -775,7 +781,14 @@ namespace LapTimer
 
 				//Position, Rotation, Velocity
 				veh.PositionNoOffset = current.pos;
-				veh.Quaternion = current.quat;
+				if (current.rot == Vector3.Zero)
+				{
+					veh.Quaternion = current.quat;
+				}
+				else
+				{
+					veh.Rotation = current.rot;
+				}
 				veh.Velocity = current.vel;
 				veh.WorldRotationVelocity = current.rvel;
 
@@ -1229,6 +1242,13 @@ namespace LapTimer
 		public void removeVehicles(int wait = 0)
         {
 			
+
+			Function.Call(Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_AMBIENT_VEHICLE_RANGE_MULTIPLIER_THIS_FRAME, 0f);
+			return;
+
 			if (Game.GameTime - lastVehicleRemoval < wait) return;
 			Vehicle[] nearby = World.GetNearbyVehicles(Game.Player.Character, 100f);
 			for (int i = 0; i < nearby.Length; i++)
@@ -1241,6 +1261,12 @@ namespace LapTimer
 		private int lastPedRemoval = 0;
 		public void removePeds(int wait = 0)
         {
+
+			Function.Call(Hash.SET_SCENARIO_PED_DENSITY_MULTIPLIER_THIS_FRAME, 0f);
+			Function.Call(Hash.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME, 0f); //p1?
+			Function.Call(Hash.SET_AMBIENT_PED_RANGE_MULTIPLIER_THIS_FRAME, 0f);
+			return;
+
 			if (Game.GameTime - lastPedRemoval < wait) return;
 			Ped[] nearby = World.GetNearbyPeds(Game.Player.Character, 100f);
 			for (int i = 0; i < nearby.Length; i++)
@@ -1259,7 +1285,7 @@ namespace LapTimer
 			//Function.Call(Hash._ANIMATE_GAMEPLAY_CAM_ZOOM, 1f, 1000f);
 			//GTA.UI.Screen.ShowSubtitle(((int)Function.Call<float>(Hash.GET_GAMEPLAY_CAM_RELATIVE_PITCH)).ToString() + "\t" + 
 			//	((int)Function.Call<float>(Hash.GET_GAMEPLAY_CAM_RELATIVE_HEADING)).ToString());
-			if (!veh.IsMotorcycle || (!veh.IsInAir && veh.Velocity.Z > 0) || clampInMidair)
+			if (!veh.IsBike || (!veh.IsInAir && veh.Velocity.Z > 0) || clampInMidair)
 			{
 				//Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, Math.Min((Math.Max(20f*veh.ForwardVector.Z, 0f)-1f) * 90f, 0f), 90f);
 				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, -90f, 90f);
@@ -1282,11 +1308,80 @@ namespace LapTimer
 		public void preventTrain()
         {
 			Function.Call(Hash.SET_DISABLE_RANDOM_TRAINS_THIS_FRAME, true);
-			//Vehicle veh = Game.Player.Character.CurrentVehicle;
+			return;
+
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			//GTA.UI.Screen.ShowSubtitle(veh.MemoryAddress.ToString("X"));
+
+			if (true)
+			{
+				VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
+				for (int i = 2; i < 4; i++)
+				{
+					IntPtr addr = wheels[i].MemoryAddress;
+					if (addr == IntPtr.Zero) break;
+					for (int j = 112; j < 113; j++)
+					{
+						unsafe
+						{
+							float* newaddr = (float*)addr;
+							*(newaddr + j) = -1.5f;
+						}
+					}
+				}
+			}
+
+
+			//int interval = 400;
+			if (false)
+			{
+				VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
+				for (int i = 0; i < 4; i++)
+				{
+					IntPtr addr = wheels[i].MemoryAddress;
+					if (addr == IntPtr.Zero) break;
+					for (int j = 88; j < 90; j++)
+					{
+						unsafe
+						{
+							float* newaddr = (float*)addr;
+							float val = *(newaddr + j);
+							if (val < .05f)
+								val = 0f;
+							*(newaddr + j) = val * .5f * 0 + .1f;
+						}
+					}
+				}
+			}
+
+			return;
 			//veh.Quaternion = new Quaternion(Vector3.UnitX, (float)Math.PI/2);
 			//GTA.UI.Screen.ShowSubtitle(activeCheckpoint.marker.checkpoint.MemoryAddress.ToString("X"));
 			//activeCheckpoint.marker.checkpoint.CylinderFarHeight = (Game.GameTime % 10);
-        }
+			int interval = 400;
+			if (Game.FrameCount % interval < 8)
+            {
+				VehicleWheel[] wheels = veh.Wheels.GetAllWheels();
+				for (int i = 2; i < 4; i++)
+				{
+					IntPtr addr = wheels[i].MemoryAddress;
+					if (addr == IntPtr.Zero) break;
+					for (int j = 89; j < 90; j++)
+					{
+						unsafe
+						{
+							float* newaddr = (float*)addr;
+							float val = *(newaddr + j);
+							if (val < .05f)
+								val = 0f;
+							*(newaddr + j) = val * .5f;
+						}
+					}
+				}
+			}
+		}
+			
+        
 		public void preventVehicleExit()
         {
 			Game.DisableControlThisFrame(Control.VehicleExit);
@@ -1472,7 +1567,7 @@ namespace LapTimer
 			info.Add(String.Format("model      {0:~g~;~o~}{0}", veh.Model.Hash));
 
 			//Timing
-			info.Add(String.Format("frametime  {0}", Game.LastFrameTime));
+			info.Add(String.Format("frametime  {0:G9}", Game.LastFrameTime));
 			int gt = Game.GameTime;
 			info.Add(String.Format("gametime   {0}", gt));
 			//info.Add(String.Format("offset\t{0}", offset));
@@ -1485,16 +1580,16 @@ namespace LapTimer
 
 			//Position, Rotation, Velocity
 			Vector3 vel = veh.Velocity;
-			info.Add(String.Format("pos        {0}", veh.Position));
-			info.Add(String.Format("quat       {0}", veh.Quaternion));
-			info.Add(String.Format("rot        {0}", veh.Rotation));
-			info.Add(String.Format("heading    {0}", veh.Heading));
-			info.Add(String.Format("vel        {0}", vel));
-			info.Add(String.Format("rotvel     {0}", veh.WorldRotationVelocity));
-			info.Add(String.Format("velvert    {0:~g~;~o~}{0}", vel.Z));
-			info.Add(String.Format("speedhoriz {0}", vel.DistanceTo2D(Vector3.Zero)));
-			info.Add(String.Format("speed      {0}", veh.Speed));
-			info.Add(String.Format("wheelspeed {0}", veh.WheelSpeed));
+			info.Add(String.Format("pos        {0}", veh.Position.ToString("G9")));
+			info.Add(String.Format("quat       {0}", veh.Quaternion.ToString("G9")));
+			info.Add(String.Format("rot        {0}", veh.Rotation.ToString("G9")));
+			info.Add(String.Format("heading    {0:G9}", veh.Heading));
+			info.Add(String.Format("vel        {0}", vel.ToString("G9")));
+			info.Add(String.Format("rotvel     {0}", veh.WorldRotationVelocity.ToString("G9")));
+			info.Add(String.Format("velvert    {0:~g~;~o~}{0:G9}", vel.Z));
+			info.Add(String.Format("speedhoriz {0:G9}", vel.DistanceTo2D(Vector3.Zero)));
+			info.Add(String.Format("speed      {0:G9}", veh.Speed));
+			info.Add(String.Format("wheelspeed {0:G9}", veh.WheelSpeed));
 			Vector3 accel;
 			int cgt, lgt;
 			if (tasPlaybackMode && tasRecEntries != null && tasPlaybackIndex > 0)
@@ -1511,23 +1606,23 @@ namespace LapTimer
 			}
 			float timePassed = (Math.Max(cgt - lgt, 1) / 1000f);
 			accel = (vel - lastVelocity) / timePassed;
-			info.Add(String.Format("accel      {0}", accel));
-			info.Add(String.Format("accelhoriz {0}", accel.DistanceTo2D(Vector3.Zero)));
-			info.Add(String.Format("cspdhoriz  {0:~g~;~o~}{0}", (vel.DistanceTo2D(Vector3.Zero) - lastVelocity.DistanceTo2D(Vector3.Zero)) / timePassed));
-			info.Add(String.Format("accelvert  {0:~g~;~o~}{0}", accel.Z));
-			info.Add(String.Format("cspdtotal  {0:~g~;~o~}{0}", (vel.Length() - lastVelocity.Length()) / timePassed));
-			info.Add(String.Format("acceltotal {0}", accel.Length()));
+			info.Add(String.Format("accel      {0:G9}", accel.ToString("G9")));
+			info.Add(String.Format("accelhoriz {0:G9}", accel.DistanceTo2D(Vector3.Zero)));
+			info.Add(String.Format("cspdhoriz  {0:~g~;~o~}{0:G9}", (vel.DistanceTo2D(Vector3.Zero) - lastVelocity.DistanceTo2D(Vector3.Zero)) / timePassed));
+			info.Add(String.Format("accelvert  {0:~g~;~o~}{0:G9}", accel.Z));
+			info.Add(String.Format("cspdtotal  {0:~g~;~o~}{0:G9}", (vel.Length() - lastVelocity.Length()) / timePassed));
+			info.Add(String.Format("acceltotal {0:G9}", accel.Length()));
 			lastVelocity = vel;
 			lastGameTime = gt;
 
 			//Driving and Turning
 			
-			info.Add(String.Format("clutch     {0}", veh.Clutch));
-			info.Add(String.Format("rpm        {0}", veh.CurrentRPM));
+			info.Add(String.Format("clutch     {0:G9}", veh.Clutch));
+			info.Add(String.Format("rpm        {0:G9}", veh.CurrentRPM));
 			info.Add(String.Format("gear       {0}", veh.CurrentGear));
 			info.Add(String.Format("nextgear   {0}", veh.NextGear));
 			info.Add(String.Format("highgear   {0}", veh.HighGear));
-			info.Add(String.Format("brakepower {0}", veh.BrakePower));
+			info.Add(String.Format("brakepower {0:G9}", veh.BrakePower));
 			info.Add(String.Format("burnout    {0}", veh.IsInBurnout ? "~g~yes" : "~o~no"));
 			info.Add(String.Format("onallwhls  {0}", veh.IsOnAllWheels ? "~g~yes" : "~o~no"));
 			info.Add(String.Format("inmidair   {0}", veh.IsInAir ? "~g~yes" : "~o~no"));
@@ -1538,12 +1633,12 @@ namespace LapTimer
 			
 			//veh.IsEngineRunning\t{0}", true));
 
-			info.Add(String.Format("steerangle {0:~g~;~o~}{0}", veh.SteeringAngle));
-			info.Add(String.Format("steerscale {0:~g~;~o~}{0}", veh.SteeringScale));
+			info.Add(String.Format("steerangle {0:~g~;~o~}{0:G9}", veh.SteeringAngle));
+			info.Add(String.Format("steerscale {0:~g~;~o~}{0:G9}", veh.SteeringScale));
 			//veh.SubmersionLevel
-			info.Add(String.Format("throttle   {0:~g~;~o~}{0}", veh.Throttle));
-			info.Add(String.Format("throtpower {0:~g~;~o~}{0}", veh.ThrottlePower));
-			info.Add(String.Format("turbo      {0:~g~;~o~}{0}", veh.Turbo));
+			info.Add(String.Format("throttle   {0:~g~;~o~}{0:G9}", veh.Throttle));
+			info.Add(String.Format("throtpower {0:~g~;~o~}{0:G9}", veh.ThrottlePower));
+			info.Add(String.Format("turbo      {0:~g~;~o~}{0:G9}", veh.Turbo));
 
 			
 
@@ -1556,33 +1651,76 @@ namespace LapTimer
 				disttocp2 = activeCheckpoint.position2 - veh.Position;
 				speedToCheckpoint2 = Vector3.Dot(vel, disttocp2.Normalized);
 			}
-			info.Add(String.Format("disttocp   {0}", disttocp.Length()));
-			info.Add(String.Format("speedtocp  {0:~g~;~o~}{0}", speedToCheckpoint));
-			info.Add(String.Format("disttocp2  {0}", disttocp2.Length()));
-			info.Add(String.Format("speedtocp2 {0:~g~;~o~}{0}", speedToCheckpoint2));
+			info.Add(String.Format("disttocp   {0:G9}", disttocp.Length()));
+			info.Add(String.Format("speedtocp  {0:~g~;~o~}{0:G9}", speedToCheckpoint));
+			info.Add(String.Format("disttocp2  {0:G9}", disttocp2.Length()));
+			info.Add(String.Format("speedtocp2 {0:~g~;~o~}{0:G9}", speedToCheckpoint2));
 
 
-			if (veh.IsMotorcycle)
+			if (veh.IsBike) //(true || veh.IsMotorcycle || veh.IsBicycle || veh.Wheels.Count == 2)
             {
-				VehicleWheel[] wheels = veh.Wheels.ToArray();
-				IntPtr frontWheelAddress = wheels[0].MemoryAddress;
-				IntPtr backWheelAddress = wheels[1].MemoryAddress;
+				//VehicleWheel[] wheels = veh.Wheels.ToArray();
+				IntPtr frontWheelAddress = veh.Wheels[VehicleWheelBoneId.WheelLeftFront].MemoryAddress; // wheels[1].MemoryAddress;
+				IntPtr backWheelAddress = veh.Wheels[VehicleWheelBoneId.WheelLeftRear].MemoryAddress;
 				if (frontWheelAddress != IntPtr.Zero && backWheelAddress != IntPtr.Zero)
 				{
 					bool glide1;
 					bool glide2;
 					unsafe
 					{
-						glide1 = *((byte*)wheels[0].MemoryAddress + 522) == 182;
-						glide2 = *((byte*)wheels[1].MemoryAddress + 522) == 182;
+						glide1 = *((byte*)frontWheelAddress + 522) == 182;
+						glide2 = *((byte*)backWheelAddress + 522) == 182;
 					}
-					info.Add(String.Format("frontglide {0}", glide2 ? "~g~yes" : "~o~no"));
-					info.Add(String.Format("backglide  {0}", glide1 ? "~g~yes" : "~o~no"));
+					info.Add(String.Format("frontglide {0}", glide1 ? "~g~yes" : "~o~no"));
+					info.Add(String.Format("backglide  {0}", glide2 ? "~g~yes" : "~o~no"));
+					bool glidebonus = (glide1 || glide2) && !veh.IsUpright;
+					//glidebonus &= veh.IsInAir ;
+					//if (veh.IsInAir)
+					info.Add(String.Format("glidebonus {0}", glidebonus ? "~g~yes" : "~o~no"));
 				}
 
 			}
 
+			info.Add(String.Format("vehaddr    {0:X}", veh.MemoryAddress.ToInt64()));
+			info.Add(String.Format("wheelfl    {0:X}", veh.Wheels[VehicleWheelBoneId.WheelLeftFront].MemoryAddress.ToInt64()));
+			info.Add(String.Format("wheelfr    {0:X}", veh.Wheels[VehicleWheelBoneId.WheelRightFront].MemoryAddress.ToInt64()));
+			info.Add(String.Format("wheelbl    {0:X}", veh.Wheels[VehicleWheelBoneId.WheelLeftRear].MemoryAddress.ToInt64()));
+			info.Add(String.Format("wheelbr    {0:X}", veh.Wheels[VehicleWheelBoneId.WheelRightRear].MemoryAddress.ToInt64()));
+			//if (veh.Speed < 120)
+			//	veh.Rotation = new Vector3(45, 0, 0); 
+			//veh.Quaternion = new Quaternion(Vector3.WorldEast, (float)Math.PI / 2);
+			//veh.Heading = 180f;
+			//veh.MaxSpeed = 30000f;
+			//veh.Velocity = new Vector3(0, 0, 30000);
+
 			return info.ToArray();
+		}
+
+		private int countdownStart = -1;
+		public void countdown()
+        {
+			Vehicle veh = Game.Player.Character.CurrentVehicle;
+			if (veh == null) return;
+			if (countdownStart < 0)
+			{
+				countdownStart = Game.GameTime;
+			}
+			int timeleft = (countdownStart + freezeTime) - Game.GameTime;
+			if (timeleft <= 0)
+			{
+				GTA.UI.Screen.ShowSubtitle("~g~Lap Timer: Go!");
+				// start the clock by getting the current GameTime
+				lapStartTime = Game.GameTime;
+				raceStartTime = lapStartTime;
+				waitForCountdown = false;
+				countdownStart = -1;
+			}
+			else
+			{
+				warpToPosition(spawn, markedSectorCheckpoints[0].quaternion);
+				Game.Player.Character.CurrentVehicle.Velocity = Vector3.Zero;
+				GTA.UI.Screen.ShowSubtitle("~y~Lap Timer: " + (timeleft/1000 + 1).ToString() + "...");
+			}
 		}
 
 		public void warpToCheckpoint(int idx)
@@ -1712,6 +1850,8 @@ namespace LapTimer
 			
         }
 
+		public bool waitForCountdown = false;
+
 		/// <summary>
 		/// Setup race mode by disabling traffic, clearing weather, and teleporting player to the 1st SectorCheckpoint.
 		/// </summary>
@@ -1723,6 +1863,10 @@ namespace LapTimer
 			//World.Weather = Weather.Neutral;
 			Function.Call(Hash._SET_RAIN_LEVEL, 0f);
 			Function.Call(Hash.SET_STUNT_JUMPS_CAN_TRIGGER, false);
+			//Function.Call(Hash.SET_PED_POPULATION_BUDGET, 0);
+			
+			//Function.Call(Hash.SET_VEHICLE_POPULATION_BUDGET, 0);
+			
 			Game.Player.Character.IsInvincible = true;
 			Game.Player.Character.CanFlyThroughWindscreen = false;
 
@@ -1734,6 +1878,10 @@ namespace LapTimer
 			totalTimerBar = new NativeUI.TextTimerBar("TIME", "--:--.---");
 			pbTimerBar = new NativeUI.TextTimerBar("PERSONAL RECORD", "--:--.---");
 			lapTimerBar = new NativeUI.TextTimerBar("CURRENT LAP", "--:--.---");
+			// set the lap start time to -100 hours
+			lapStartTime = defaultLapStartTime;
+			//race hasn't started yet
+			raceStartTime = defaultLapStartTime;
 			if (!lapRace) {
 				// set the 2nd SectorCheckpoint as active (there must be at least 2 SectorCheckpoints to start race mode); draw the checkpoint
 				activateRaceCheckpoint(1);
@@ -1754,15 +1902,16 @@ namespace LapTimer
 
 				// freeze time
 				Game.Player.CanControlCharacter = false;
-				GTA.UI.Screen.ShowSubtitle("~y~Lap Timer: Ready...");
-				Script.Wait(freezeTime);
-				GTA.UI.Screen.ShowSubtitle("~g~Lap Timer: Go!");
+				//GTA.UI.Screen.ShowSubtitle("~y~Lap Timer: Ready...");
+				//Script.Wait(freezeTime); //TODO FIX
+				waitForCountdown = true;
+				//GTA.UI.Screen.ShowSubtitle("~g~Lap Timer: Go!");
 				Game.Player.CanControlCharacter = true;
 				
 
 				// start the clock by getting the current GameTime
-				lapStartTime = Game.GameTime;
-				raceStartTime = lapStartTime;
+				//lapStartTime = Game.GameTime;
+				//raceStartTime = lapStartTime;
 
 				
 				pool.Add(pbTimerBar);
@@ -1779,10 +1928,7 @@ namespace LapTimer
 				Game.Player.Character.CurrentVehicle.Quaternion = start.quaternion;
 				fixCar();
 
-				// set the lap start time to -100 hours
-				lapStartTime = defaultLapStartTime;
-				//race hasn't started yet
-				raceStartTime = defaultLapStartTime;
+				
 
 				pool.Add(totalTimerBar);
 				pool.Add(pbTimerBar);

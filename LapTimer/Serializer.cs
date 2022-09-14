@@ -369,15 +369,18 @@ namespace LapTimer
 	{
 		//Timing
 		public float frametime;
+		public int framecount;
 		public int gametime;
 		public int offset;
 		public int laptime;
 		public int totaltime;
 		public int activecheckpoint;
+		public float timescale;
 		public int exitplaybacktime;
 		//Position, Rotation, Velocity
 		public Vector3 pos;
 		public Quaternion quat;
+		public Vector3 rot;
 		public Vector3 vel;
 		public Vector3 rvel;
 		public float wheelspeed;
@@ -420,6 +423,7 @@ namespace LapTimer
 
 	public struct wheelProperties
     {
+		public VehicleWheelBoneId boneid;
 		public int[] memory;
     }
 	public struct vehControls

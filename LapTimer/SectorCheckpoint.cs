@@ -61,11 +61,18 @@ namespace LapTimer
 			chs2 = _chs2;
 			cpbs1 = _cpbs1;
 
+			//This causes a bug on tracks with many (>50-60) checkpoints, since the game can't handle too many at once.
 			// place a marker (placement mode)
-			marker = placeMarker(MarkerType.placement, number);
+			//marker = placeMarker(MarkerType.placement, number);
 
 			// compute and store the checkpoint's hashcode
 			_checkpointHashcode = computeCheckpointHashcode();
+
+			//Emulate GTA Online behavior, not sure about this
+			if (isAirCheckpoint)
+				chs = Math.Min(chs, 2);
+			if (isAirCheckpoint2)
+				chs2 = Math.Min(chs2, 2);
 
 			// debug printout if verbose
 			if (verbose)

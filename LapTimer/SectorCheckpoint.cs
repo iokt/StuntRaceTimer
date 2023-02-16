@@ -169,7 +169,7 @@ namespace LapTimer
             }
 			newMarker.checkpoint.CylinderFarHeight = radius/3;
 			newMarker.checkpoint.CylinderNearHeight = radius/3;
-			Function.Call(Hash._SET_CHECKPOINT_SCALE, newMarker.checkpoint.Handle, .4f); //actually _SET_CHECKPOINT_ICON_HEIGHT
+			Function.Call(Hash.SET_CHECKPOINT_INSIDE_CYLINDER_HEIGHT_SCALE, newMarker.checkpoint.Handle, .4f);
 			Function.Call(Hash.SET_CHECKPOINT_RGBA2, newMarker.checkpoint.Handle, defaultIconColor.R, defaultIconColor.G, defaultIconColor.B, defaultIconColor.A);
 			//Function.Call(Hash._SET_CHECKPOINT_ICON_SCALE, newMarker.checkpoint.Handle, .5f);
 
@@ -247,7 +247,7 @@ namespace LapTimer
 
 				newMarker.checkpoint2.CylinderFarHeight = radius2 / 3;
 				newMarker.checkpoint2.CylinderNearHeight = radius2 / 3;
-				Function.Call(Hash._SET_CHECKPOINT_SCALE, newMarker.checkpoint2.Handle, .4f); //actually _SET_CHECKPOINT_ICON_HEIGHT
+				Function.Call(Hash.SET_CHECKPOINT_INSIDE_CYLINDER_HEIGHT_SCALE, newMarker.checkpoint2.Handle, .4f);
 				Function.Call(Hash.SET_CHECKPOINT_RGBA2, newMarker.checkpoint2.Handle, defaultIconColor.R, defaultIconColor.G, defaultIconColor.B, defaultIconColor.A);
 
 				// create blip

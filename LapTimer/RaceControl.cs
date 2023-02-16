@@ -1193,7 +1193,8 @@ namespace LapTimer
 						{
 							byte speedup;
 							if (speedupIntensityLookup.TryGetValue(p.speedup, out speedup))
-								Function.Call(Hash._SET_OBJECT_STUNT_PROP_SPEEDUP, nearby[i].Handle, speedup);
+								// TODO: investigate Hash.SET_OBJECT_SPEED_BOOST_DURATION (0xDF6CA0330F2E737B)
+								Function.Call(Hash.SET_OBJECT_SPEED_BOOST_AMOUNT, nearby[i].Handle, speedup);
 							//GTA.UI.Screen.ShowSubtitle(nearby[i].MemoryAddress.ToString("x"));
 							break;
 						}
@@ -1204,7 +1205,7 @@ namespace LapTimer
 						{
 							byte speedup;
 							if (slowdownIntensityLookup.TryGetValue(p.speedup, out speedup))
-								Function.Call(Hash._SET_OBJECT_STUNT_PROP_SPEEDUP, nearby[i].Handle, speedup);
+								Function.Call(Hash.SET_OBJECT_SPEED_BOOST_AMOUNT, nearby[i].Handle, speedup);
 							//GTA.UI.Screen.ShowSubtitle(nearby[i].MemoryAddress.ToString("x"));
 							break;
 						}
@@ -1292,7 +1293,7 @@ namespace LapTimer
 			if (!veh.IsBike || (!veh.IsInAir && veh.Velocity.Z > 0) || clampInMidair)
 			{
 				//Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, Math.Min((Math.Max(20f*veh.ForwardVector.Z, 0f)-1f) * 90f, 0f), 90f);
-				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, -90f, 90f);
+				Function.Call(Hash.SET_THIRD_PERSON_CAM_RELATIVE_PITCH_LIMITS_THIS_UPDATE, -90f, 90f);
 				//if (Function.Call<Vector3>(Hash.GET_GAMEPLAY_CAM_COORD).DistanceTo(veh.Position) < 100f)
 				//	Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_PITCH, 20f * veh.UpVector.Z, 1f);
 
@@ -1305,8 +1306,8 @@ namespace LapTimer
 			}
 			if (false && tasPlaybackMode && tasPlaybackPaused)
             {
-				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_PITCH, 0f, 0f);
-				Function.Call(Hash._CLAMP_GAMEPLAY_CAM_YAW, 0f, 0f);
+				Function.Call(Hash.SET_THIRD_PERSON_CAM_RELATIVE_PITCH_LIMITS_THIS_UPDATE, 0f, 0f);
+				Function.Call(Hash.SET_THIRD_PERSON_CAM_RELATIVE_HEADING_LIMITS_THIS_UPDATE, 0f, 0f);
 			}
 		}
 		public void preventTrain()
@@ -1875,7 +1876,7 @@ namespace LapTimer
 			weather = World.Weather;
 			//World.Weather = Weather.ExtraSunny;
 			//World.Weather = Weather.Neutral;
-			Function.Call(Hash._SET_RAIN_LEVEL, 0f);
+			Function.Call(Hash.SET_RAIN, 0f);
 			Function.Call(Hash.SET_STUNT_JUMPS_CAN_TRIGGER, false);
 			//Function.Call(Hash.SET_PED_POPULATION_BUDGET, 0);
 			

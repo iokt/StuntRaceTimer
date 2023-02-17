@@ -18,7 +18,7 @@ If you want to spawn in the props, you need to install Menyoo and add the XML fi
 ### Requirements
 - .NET 4.8
 - [ScriptHookVDotNet v3](https://github.com/crosire/scripthookvdotnet/releases)
-- [NativeUI](https://github.com/Guad/NativeUI/releases)
+- [LemonUI](https://github.com/LemonUIbyLemon/LemonUI)
 - [MenyooSP](https://github.com/MAFINS/MenyooSP/releases) (recommended)
 
 ---

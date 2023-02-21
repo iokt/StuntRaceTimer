@@ -40,6 +40,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         # Artifact name
-        name: MenyooSP
+        name: LapTimerdll
         path: |
           LapTimer/bin/Release/LapTimer.dll

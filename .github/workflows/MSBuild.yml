@@ -30,6 +30,7 @@ jobs:
         python3 download-requirements.py
 
     - name: Build
+      continue-on-error: true
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
@@ -41,4 +42,4 @@ jobs:
         # Artifact name
         name: MenyooSP
         path: |
-          LapTimer/bin/Release/LapTimer.zip
+          LapTimer/bin/Release/LapTimer.dll

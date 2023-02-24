@@ -1215,6 +1215,23 @@ namespace LapTimer
 			}
 		}
 
+		private IntPtr downforceTogglePtr = IntPtr.Zero;
+		public void toggleDownforce(bool on)
+        {
+			if (downforceTogglePtr == IntPtr.Zero)
+				downforceTogglePtr = Game.FindPattern("00 F3 0F 10 05 ?? ?? ?? ?? 74 38 F3 0F 5C");
+			if (downforceTogglePtr == IntPtr.Zero)
+				return;
+			unsafe
+			{
+				byte* val = (byte*)downforceTogglePtr.ToPointer();
+				if (on)
+					*val = 0xff;
+				else
+					*val = 0x00;
+			}
+        }
+
 		//prpsba (for boosts)
 		//1: 0x0f = 15 (Weak)
 		//2: 0x19 = 25 (Normal)
@@ -1886,6 +1903,7 @@ namespace LapTimer
 			Game.Player.Character.CanFlyThroughWindscreen = false;
 
 			setSpeedupIntensity();
+			toggleDownforce(true);
 
 			pool.Remove(totalTimerBar);
 			pool.Remove(pbTimerBar);

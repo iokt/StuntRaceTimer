@@ -17,9 +17,10 @@ If you want to spawn in the props, you need to install Menyoo and add the XML fi
 
 ### Requirements
 - .NET 4.8
-- [ScriptHookVDotNet v3](https://github.com/crosire/scripthookvdotnet/releases)
-- [LemonUI](https://github.com/LemonUIbyLemon/LemonUI)
-- [MenyooSP](https://github.com/MAFINS/MenyooSP/releases) (recommended)
+- [ScriptHookVDotNet v3](https://github.com/crosire/scripthookvdotnet/releases/latest)
+- [LemonUI](https://github.com/LemonUIbyLemon/LemonUI/releases/latest)
+- [MenyooSP](https://github.com/MAFINS/MenyooSP/releases/latest) (to spawn vehicles and load props for tracks)
+- [Simple Trainer](https://www.gta5-mods.com/scripts/simple-trainer-for-gtav) (to prevent cars from despawning)
 
 ---
 ## Usage

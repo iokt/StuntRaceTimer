@@ -281,8 +281,9 @@ namespace LapTimer
 					if (raceMode)
 					{
 						bool warp = Convert.ToBoolean(activeCheckpoint.cpbs1 & (1 << 27));
+						bool warp2 = Convert.ToBoolean(activeCheckpoint.cpbs1 & (1 << 28));
 						activateRaceCheckpoint(activeSector + 1);
-						if (warp)
+						if (inRange ? warp : warp2)
 						{
 							warpToCheckpoint(activeSector);
 						}
@@ -1219,7 +1220,7 @@ namespace LapTimer
 		public void toggleDownforce(bool on)
         {
 			if (downforceTogglePtr == IntPtr.Zero)
-				downforceTogglePtr = Game.FindPattern("00 F3 0F 10 05 ?? ?? ?? ?? 74 38 F3 0F 5C");
+				downforceTogglePtr = Game.FindPattern("00 F3 0F 10 05 ?? ?? ?? ?? 74 38 F3 0F 5C 1D");
 			if (downforceTogglePtr == IntPtr.Zero)
 				return;
 			unsafe
@@ -1748,7 +1749,10 @@ namespace LapTimer
 		public void warpToCheckpoint(int idx)
         {
 			SectorCheckpoint warpTo = markedSectorCheckpoints[idx];
-			warpToPosition(warpTo.position, warpTo.quaternion);
+			if (lastHitSecondary && warpTo.position2 != Vector3.Zero)
+				warpToPosition(warpTo.position2, warpTo.quaternion2);
+			else
+				warpToPosition(warpTo.position, warpTo.quaternion);
 		}
 
 		public void warpToPosition(Vector3 pos, Quaternion quat)
